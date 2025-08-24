@@ -491,7 +491,7 @@ const WaterMonitoringDashboard: React.FC = () => {
     <div className="min-h-screen transition-colors duration-300 bg-background">
       <div className="flex h-screen">
         {/* Left Sidebar - Input Form (18% width) */}
-        <div className="w-[18%] border-r border-border bg-card/50 overflow-y-auto scrollbar-thin">
+        <div className="w-[22%] border-r border-border bg-card/50 overflow-y-auto scrollbar-thin">
           <div className="p-4 space-y-4">
             {/* Header in Sidebar */}
             <div className="text-center relative">

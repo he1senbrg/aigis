@@ -2,11 +2,11 @@
 
 import dynamic from 'next/dynamic'
 
-const WaterMonitoringDashboard = dynamic(
-  () => import('@/components/WaterMonitoringDashboard'),
+const WaterMonitoringApp = dynamic(
+  () => import('@/components/WaterMonitoringApp'),
   { ssr: false }
 )
 
 export default function Home() {
-  return <WaterMonitoringDashboard />
+  return <WaterMonitoringApp />
 }
