@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { Download, Grid3X3, List, Search } from 'lucide-react'
-import Image from 'next/image'
+import Image, { StaticImageData } from 'next/image'
 import React, { useState } from 'react'
+import gw_quality_img from "../assets/gw_quality.jpg"
+import gw_resource_img from "../assets/gw_resource.jpg"
+import population_img from "../assets/population.jpg"
 
 interface Dataset {
   id: string
   title: string
   description: string
-  image: string
+  image: string | StaticImageData
   fields: string[]
   size: string
   format: string
@@ -26,7 +29,7 @@ const datasets: Dataset[] = [
     id: '1',
     title: 'Ground Water Quality Dataset',
     description: 'Comprehensive water quality measurements including pH, TDS, nitrate, fluoride, and arsenic levels across various monitoring locations.',
-    image: '/api/placeholder/300/200',
+    image: gw_quality_img,
     fields: ['pH', 'TDS', 'Nitrate', 'Fluoride', 'Arsenic', 'Temperature', 'Location', 'Timestamp'],
     size: '2.4 MB',
     format: 'CSV',
@@ -38,7 +41,7 @@ const datasets: Dataset[] = [
     id: '2',
     title: 'Ground Water Resource Dataset',
     description: 'Groundwater assessment data including draft, recharge, availability, and development stage across different regions.',
-    image: '/api/placeholder/300/200',
+    image: gw_resource_img,
     fields: ['Annual Draft', 'Replenishable Resources', 'Net Availability', 'Development Stage', 'District', 'Year'],
     size: '1.8 MB',
     format: 'CSV',
@@ -50,7 +53,7 @@ const datasets: Dataset[] = [
     id: '3',
     title: 'Population Dataset',
     description: 'Demographic data including population distribution, density, and growth patterns correlated with water monitoring locations.',
-    image: '/api/placeholder/300/200',
+    image: population_img,
     fields: ['Population', 'Density', 'Growth Rate', 'Urban/Rural', 'District', 'Census Year'],
     size: '950 KB',
     format: 'CSV',
