@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { Download, Grid3X3, List, Search } from 'lucide-react'
+import Image from 'next/image'
 import React, { useState } from 'react'
 
 interface Dataset {
@@ -148,11 +149,12 @@ export const DatasetsPage: React.FC<DatasetsPageProps> = ({ className }) => {
             {viewMode === 'grid' ? (
               // Grid View
               <>
-                <div className="aspect-video bg-muted rounded-t-lg overflow-hidden">
-                  <img
+                <div className="aspect-video bg-muted rounded-t-lg overflow-hidden relative">
+                  <Image
                     src={dataset.image}
                     alt={dataset.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                     onError={(e) => {
                       // Fallback to a colored div if image fails to load
                       const target = e.target as HTMLImageElement
@@ -203,11 +205,12 @@ export const DatasetsPage: React.FC<DatasetsPageProps> = ({ className }) => {
             ) : (
               // List View
               <>
-                <div className="w-48 flex-shrink-0 bg-muted overflow-hidden">
-                  <img
+                <div className="w-48 flex-shrink-0 bg-muted overflow-hidden relative">
+                  <Image
                     src={dataset.image}
                     alt={dataset.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
                       target.style.display = 'none'

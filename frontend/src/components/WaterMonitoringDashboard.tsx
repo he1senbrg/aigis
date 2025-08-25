@@ -49,6 +49,31 @@ interface WaterData {
   timestamp: string
 }
 
+interface CsvRowData {
+  location?: string
+  latitude?: string | number
+  longitude?: string | number
+  districtName?: string
+  population?: string | number
+  groundwaterLevel?: string | number
+  ph?: string | number
+  tds?: string | number
+  nitrate?: string | number
+  fluoride?: string | number
+  arsenic?: string | number
+  temperature?: string | number
+  wellDepth?: string | number
+  annualDomesticIndustryDraft?: string | number
+  annualIrrigationDraft?: string | number
+  annualGroundwaterDraftTotal?: string | number
+  annualReplenishableGroundwaterResources?: string | number
+  naturalDischargeNonMonsoon?: string | number
+  netGroundwaterAvailability?: string | number
+  projectedDemandDomesticIndustrial2025?: string | number
+  groundwaterAvailabilityFutureIrrigation?: string | number
+  stageGroundwaterDevelopment?: string | number
+}
+
 interface WaterInputData {
   location: string
   latitude: string
@@ -238,31 +263,31 @@ const WaterMonitoringDashboard: React.FC = () => {
     })
   }
 
-  const handleCsvUpload = (csvData: any[]) => {
+  const handleCsvUpload = (csvData: CsvRowData[]) => {
     const newWaterData: WaterData[] = csvData.map((row, index) => ({
       id: (waterData.length + index + 1).toString(),
       location: row.location || '',
-      latitude: parseFloat(row.latitude) || 0,
-      longitude: parseFloat(row.longitude) || 0,
+      latitude: parseFloat(String(row.latitude)) || 0,
+      longitude: parseFloat(String(row.longitude)) || 0,
       districtName: row.districtName || row.location || '',
-      population: parseInt(row.population) || 0,
-      groundwaterLevel: parseFloat(row.groundwaterLevel) || 0,
-      ph: parseFloat(row.ph) || 7,
-      tds: parseFloat(row.tds) || 0,
-      nitrate: parseFloat(row.nitrate) || 0,
-      fluoride: parseFloat(row.fluoride) || 0,
-      arsenic: parseFloat(row.arsenic) || 0,
-      temperature: parseFloat(row.temperature) || 25,
-      wellDepth: parseFloat(row.wellDepth) || 0,
-      annualDomesticIndustryDraft: parseFloat(row.annualDomesticIndustryDraft) || 0,
-      annualIrrigationDraft: parseFloat(row.annualIrrigationDraft) || 0,
-      annualGroundwaterDraftTotal: parseFloat(row.annualGroundwaterDraftTotal) || 0,
-      annualReplenishableGroundwaterResources: parseFloat(row.annualReplenishableGroundwaterResources) || 0,
-      naturalDischargeNonMonsoon: parseFloat(row.naturalDischargeNonMonsoon) || 0,
-      netGroundwaterAvailability: parseFloat(row.netGroundwaterAvailability) || 0,
-      projectedDemandDomesticIndustrial2025: parseFloat(row.projectedDemandDomesticIndustrial2025) || 0,
-      groundwaterAvailabilityFutureIrrigation: parseFloat(row.groundwaterAvailabilityFutureIrrigation) || 0,
-      stageGroundwaterDevelopment: parseFloat(row.stageGroundwaterDevelopment) || 0,
+      population: parseInt(String(row.population)) || 0,
+      groundwaterLevel: parseFloat(String(row.groundwaterLevel)) || 0,
+      ph: parseFloat(String(row.ph)) || 7,
+      tds: parseFloat(String(row.tds)) || 0,
+      nitrate: parseFloat(String(row.nitrate)) || 0,
+      fluoride: parseFloat(String(row.fluoride)) || 0,
+      arsenic: parseFloat(String(row.arsenic)) || 0,
+      temperature: parseFloat(String(row.temperature)) || 25,
+      wellDepth: parseFloat(String(row.wellDepth)) || 0,
+      annualDomesticIndustryDraft: parseFloat(String(row.annualDomesticIndustryDraft)) || 0,
+      annualIrrigationDraft: parseFloat(String(row.annualIrrigationDraft)) || 0,
+      annualGroundwaterDraftTotal: parseFloat(String(row.annualGroundwaterDraftTotal)) || 0,
+      annualReplenishableGroundwaterResources: parseFloat(String(row.annualReplenishableGroundwaterResources)) || 0,
+      naturalDischargeNonMonsoon: parseFloat(String(row.naturalDischargeNonMonsoon)) || 0,
+      netGroundwaterAvailability: parseFloat(String(row.netGroundwaterAvailability)) || 0,
+      projectedDemandDomesticIndustrial2025: parseFloat(String(row.projectedDemandDomesticIndustrial2025)) || 0,
+      groundwaterAvailabilityFutureIrrigation: parseFloat(String(row.groundwaterAvailabilityFutureIrrigation)) || 0,
+      stageGroundwaterDevelopment: parseFloat(String(row.stageGroundwaterDevelopment)) || 0,
       timestamp: new Date().toISOString()
     }))
 
