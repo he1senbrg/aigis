@@ -292,7 +292,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="space-y-3">
-              <div className="space-y-2">
+              <div className="space-y-5">
                 <div>
                   <Label htmlFor="location" className="text-xs">Location Name</Label>
                   <Input

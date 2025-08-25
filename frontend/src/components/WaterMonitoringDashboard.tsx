@@ -642,7 +642,7 @@ const WaterMonitoringDashboard: React.FC = () => {
         onInputChange={handleInputChange}
         onSubmit={handleSubmit}
         onCsvUpload={handleCsvUpload}
-        className="w-[22%] border-l border-border bg-card/50 overflow-y-auto scrollbar-thin"
+        className="w-[35%] border-l border-border bg-card/50 overflow-y-auto scrollbar-thin"
       />
     </div>
   )
