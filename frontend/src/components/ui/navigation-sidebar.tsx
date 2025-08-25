@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { ChevronRight, Database, Home, LayoutDashboard } from 'lucide-react'
+import { ChevronRight, Database, LayoutDashboard, Menu } from 'lucide-react'
 import React, { useState } from 'react'
 
 interface NavigationSidebarProps {
@@ -40,20 +40,21 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         isExpanded ? "w-64" : "w-16",
         className
       )}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
     >
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Home className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
+            >
+              <Menu className="w-4 h-4 text-primary-foreground" />
+            </button>
             {isExpanded && (
               <div className="flex-1 min-w-0">
                 <h2 className="font-semibold text-sm truncate">AIGIS</h2>
-                <p className="text-xs text-muted-foreground truncate">Navigation</p>
+                {/* <p className="text-xs text-muted-foreground truncate">Water Monitoring</p> */}
               </div>
             )}
           </div>
@@ -100,7 +101,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         <div className="p-4 border-t border-border">
           {isExpanded && (
             <div className="text-xs text-muted-foreground text-center">
-              {/* Hover to expand */}
+              Team AIGIS
             </div>
           )}
         </div>

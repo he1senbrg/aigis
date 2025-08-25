@@ -2,7 +2,7 @@
 
 import { DatasetsPage } from '@/components/DatasetsPage'
 import { NavigationSidebar } from '@/components/ui/navigation-sidebar'
-import WaterMonitoringDashboard from '@/components/WaterMonitoringDashboardNew'
+import WaterMonitoringDashboard from '@/components/WaterMonitoringDashboard'
 import React, { useState } from 'react'
 
 const WaterMonitoringApp: React.FC = () => {

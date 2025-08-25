@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import React from 'react'
+import { FileText, Upload, X } from 'lucide-react'
+import React, { useRef, useState } from 'react'
 
 interface WaterInputData {
   location: string
@@ -36,6 +37,7 @@ interface InputSidebarProps {
   inputData: WaterInputData
   onInputChange: (field: keyof WaterInputData, value: string) => void
   onSubmit: (e: React.FormEvent) => void
+  onCsvUpload?: (data: WaterInputData[]) => void
   className?: string
 }
 
@@ -43,8 +45,176 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
   inputData,
   onInputChange,
   onSubmit,
+  onCsvUpload,
   className
 }) => {
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.name.endsWith('.csv')) {
+      alert('Please upload a CSV file')
+      return
+    }
+
+    setUploadedFile(file)
+    setIsProcessing(true)
+
+    try {
+      const text = await file.text()
+      const lines = text.trim().split('\n')
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
+      
+      const parsedData: WaterInputData[] = []
+      
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim())
+        const rowData: Partial<WaterInputData> = {}
+        
+        headers.forEach((header, index) => {
+          const value = values[index] || ''
+          // Map CSV headers to our data structure
+          switch (header) {
+            case 'location':
+            case 'location name':
+              rowData.location = value
+              break
+            case 'latitude':
+            case 'lat':
+              rowData.latitude = value
+              break
+            case 'longitude':
+            case 'lng':
+            case 'lon':
+              rowData.longitude = value
+              break
+            case 'district':
+            case 'district name':
+              rowData.districtName = value
+              break
+            case 'population':
+              rowData.population = value
+              break
+            case 'groundwater level':
+            case 'groundwaterlevel':
+            case 'gw level':
+              rowData.groundwaterLevel = value
+              break
+            case 'ph':
+            case 'ph level':
+              rowData.ph = value
+              break
+            case 'tds':
+            case 'total dissolved solids':
+              rowData.tds = value
+              break
+            case 'nitrate':
+              rowData.nitrate = value
+              break
+            case 'fluoride':
+              rowData.fluoride = value
+              break
+            case 'arsenic':
+              rowData.arsenic = value
+              break
+            case 'temperature':
+            case 'temp':
+              rowData.temperature = value
+              break
+            case 'well depth':
+            case 'welldepth':
+              rowData.wellDepth = value
+              break
+            case 'annual domestic industry draft':
+            case 'annualdomesticindustrydraft':
+              rowData.annualDomesticIndustryDraft = value
+              break
+            case 'annual irrigation draft':
+            case 'annualirrigationdraft':
+              rowData.annualIrrigationDraft = value
+              break
+            case 'annual groundwater draft total':
+            case 'annualgroundwaterdrafttotal':
+              rowData.annualGroundwaterDraftTotal = value
+              break
+            case 'annual replenishable groundwater resources':
+            case 'annualreplenishablegroundwaterresources':
+              rowData.annualReplenishableGroundwaterResources = value
+              break
+            case 'natural discharge non monsoon':
+            case 'naturaldischargenonmonsoon':
+              rowData.naturalDischargeNonMonsoon = value
+              break
+            case 'net groundwater availability':
+            case 'netgroundwateravailability':
+              rowData.netGroundwaterAvailability = value
+              break
+            case 'projected demand domestic industrial 2025':
+            case 'projecteddemanddomesticindustrial2025':
+              rowData.projectedDemandDomesticIndustrial2025 = value
+              break
+            case 'groundwater availability future irrigation':
+            case 'groundwateravailabilityfutureirrigation':
+              rowData.groundwaterAvailabilityFutureIrrigation = value
+              break
+            case 'stage groundwater development':
+            case 'stagegroundwaterdevelopment':
+              rowData.stageGroundwaterDevelopment = value
+              break
+          }
+        })
+        
+        // Fill in empty fields with default values
+        const completeRowData: WaterInputData = {
+          location: rowData.location || '',
+          latitude: rowData.latitude || '',
+          longitude: rowData.longitude || '',
+          districtName: rowData.districtName || rowData.location || '',
+          population: rowData.population || '',
+          groundwaterLevel: rowData.groundwaterLevel || '',
+          ph: rowData.ph || '',
+          tds: rowData.tds || '',
+          nitrate: rowData.nitrate || '',
+          fluoride: rowData.fluoride || '',
+          arsenic: rowData.arsenic || '',
+          temperature: rowData.temperature || '',
+          wellDepth: rowData.wellDepth || '',
+          annualDomesticIndustryDraft: rowData.annualDomesticIndustryDraft || '',
+          annualIrrigationDraft: rowData.annualIrrigationDraft || '',
+          annualGroundwaterDraftTotal: rowData.annualGroundwaterDraftTotal || '',
+          annualReplenishableGroundwaterResources: rowData.annualReplenishableGroundwaterResources || '',
+          naturalDischargeNonMonsoon: rowData.naturalDischargeNonMonsoon || '',
+          netGroundwaterAvailability: rowData.netGroundwaterAvailability || '',
+          projectedDemandDomesticIndustrial2025: rowData.projectedDemandDomesticIndustrial2025 || '',
+          groundwaterAvailabilityFutureIrrigation: rowData.groundwaterAvailabilityFutureIrrigation || '',
+          stageGroundwaterDevelopment: rowData.stageGroundwaterDevelopment || ''
+        }
+        
+        parsedData.push(completeRowData)
+      }
+      
+      if (onCsvUpload && parsedData.length > 0) {
+        onCsvUpload(parsedData)
+      }
+      
+    } catch (error) {
+      console.error('Error parsing CSV:', error)
+      alert('Error parsing CSV file. Please check the file format.')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const removeFile = () => {
+    setUploadedFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
   return (
     <div className={className}>
       <div className="p-4 space-y-4">
@@ -54,11 +224,71 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
           <p className="mt-1 text-xs text-muted-foreground">Enter new monitoring data</p>
         </div>
 
-        {/* Input Form */}
+        {/* CSV Upload Section */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Water Monitoring Data</CardTitle>
-            <CardDescription className="text-xs">Enter water monitoring data for a new location</CardDescription>
+            <CardTitle className="text-sm">Upload CSV File</CardTitle>
+            <CardDescription className="text-xs">Upload a CSV file with water monitoring data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {!uploadedFile ? (
+                <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="csv-upload"
+                  />
+                  <label 
+                    htmlFor="csv-upload" 
+                    className="cursor-pointer flex flex-col items-center gap-2"
+                  >
+                    <Upload className="w-6 h-6 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      Click to upload CSV file
+                    </span>
+                  </label>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between p-2 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-medium">{uploadedFile.name}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={removeFile}
+                    className="h-6 w-6 p-0"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
+              {isProcessing && (
+                <div className="text-xs text-center text-muted-foreground">
+                  Processing CSV file...
+                </div>
+              )}
+              <div className="text-xs text-muted-foreground">
+                <p className="font-medium mb-1">Expected CSV headers:</p>
+                <p className="text-[10px] leading-tight">
+                  location, latitude, longitude, district, population, groundwater level, ph, tds, nitrate, fluoride, arsenic, temperature, well depth
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Manual Input Form */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Manual Entry</CardTitle>
+            <CardDescription className="text-xs">Enter water monitoring data manually</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="space-y-3">
