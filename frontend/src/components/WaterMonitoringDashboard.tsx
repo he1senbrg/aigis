@@ -19,18 +19,38 @@ delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 })
 
+// Function to get coordinates for any location using geocoding
+const getLocationCoordinates = async (location: string): Promise<[number, number]> => {
+  try {
+    // Use OpenStreetMap Nominatim geocoding service (free and no API key required)
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`)
+    const data = await response.json()
+    
+    if (data && data.length > 0) {
+      const lat = parseFloat(data[0].lat)
+      const lon = parseFloat(data[0].lon)
+      return [lat, lon]
+    }
+    
+    // Fallback to center of India if location not found
+    return [20.5937, 78.9629]
+  } catch (error) {
+    console.error('Geocoding error:', error)
+    // Fallback to center of India if error occurs
+    return [20.5937, 78.9629]
+  }
+}
+
 interface WaterData {
+  groundwaterLevel: number;
+  ph: number;
   id: string
-  location: string
-  latitude: number
-  longitude: number
-  districtName: string
-  population: number
-  groundwaterLevel: number
-  ph: number
+  location: string;
+  districtName: string;
+  population: string;
   ec: number // Electrical Conductivity
   tds: number
   th: number // Total Hardness
@@ -60,8 +80,7 @@ interface WaterData {
 
 interface CsvRowData {
   location?: string
-  latitude?: string | number
-  longitude?: string | number
+  // latitude and longitude removed
   districtName?: string
   population?: string | number
   groundwaterLevel?: string | number
@@ -124,6 +143,8 @@ const WaterMonitoringDashboard: React.FC<{
   const [darkMode, setDarkMode] = useState(true)
   const [reportLanguage, setReportLanguage] = useState('english')
   const [mobileInputVisible, setMobileInputVisible] = useState(false)
+  const [mapCenter, setMapCenter] = useState<[number, number]>([10.8505, 76.2711])
+  const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null)
   
   useEffect(() => {
     if (darkMode) {
@@ -141,10 +162,8 @@ const WaterMonitoringDashboard: React.FC<{
     {
       id: '1',
       location: 'Kollam',
-      latitude: 8.8932,
-      longitude: 76.6141,
       districtName: 'Kollam',
-      population: 2629000,
+  population: '2629000',
       groundwaterLevel: 8.5,
       ph: 7.2,
       ec: 680, // Electrical Conductivity (µS/cm)
@@ -177,8 +196,6 @@ const WaterMonitoringDashboard: React.FC<{
 
   const [inputData, setInputData] = useState<WaterInputData>({
     location: '',
-    latitude: '',
-    longitude: '',
     districtName: '',
     population: '',
     groundwaterLevel: '',
@@ -213,102 +230,128 @@ const WaterMonitoringDashboard: React.FC<{
     setInputData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!inputData.location || !inputData.latitude || !inputData.longitude) {
-      alert('Please fill in at least Location, Latitude, and Longitude')
+    if (!inputData.location) {
+      alert('Please fill in Location')
       return
     }
 
-    const newData: WaterData = {
-      id: (waterData.length + 1).toString(),
-      location: inputData.location,
-      latitude: parseFloat(inputData.latitude) || 0,
-      longitude: parseFloat(inputData.longitude) || 0,
-      districtName: inputData.districtName || inputData.location,
-      population: parseInt(inputData.population) || 0,
-      groundwaterLevel: parseFloat(inputData.groundwaterLevel) || 0,
-      ph: parseFloat(inputData.ph) || 7,
-      ec: parseFloat(inputData.ec) || 0, // Electrical Conductivity
-      tds: parseFloat(inputData.tds) || 0,
-      th: parseFloat(inputData.th) || 0, // Total Hardness
-      ca: parseFloat(inputData.ca) || 0, // Calcium
-      mg: parseFloat(inputData.mg) || 0, // Magnesium
-      na: parseFloat(inputData.na) || 0, // Sodium
-      k: parseFloat(inputData.k) || 0, // Potassium
-      cl: parseFloat(inputData.cl) || 0, // Chloride
-      so4: parseFloat(inputData.so4) || 0, // Sulfate
-      nitrate: parseFloat(inputData.nitrate) || 0,
-      fluoride: parseFloat(inputData.fluoride) || 0,
-      uranium: parseFloat(inputData.uranium) || 0, // Uranium (ppb)
-      arsenic: parseFloat(inputData.arsenic) || 0,
-      temperature: parseFloat(inputData.temperature) || 25,
-      wellDepth: parseFloat(inputData.wellDepth) || 0,
-      annualDomesticIndustryDraft: parseFloat(inputData.annualDomesticIndustryDraft) || 0,
-      annualIrrigationDraft: parseFloat(inputData.annualIrrigationDraft) || 0,
-      annualGroundwaterDraftTotal: parseFloat(inputData.annualGroundwaterDraftTotal) || 0,
-      annualReplenishableGroundwaterResources: parseFloat(inputData.annualReplenishableGroundwaterResources) || 0,
-      naturalDischargeNonMonsoon: parseFloat(inputData.naturalDischargeNonMonsoon) || 0,
-      netGroundwaterAvailability: parseFloat(inputData.netGroundwaterAvailability) || 0,
-      projectedDemandDomesticIndustrial2025: parseFloat(inputData.projectedDemandDomesticIndustrial2025) || 0,
-      groundwaterAvailabilityFutureIrrigation: parseFloat(inputData.groundwaterAvailabilityFutureIrrigation) || 0,
-      stageGroundwaterDevelopment: parseFloat(inputData.stageGroundwaterDevelopment) || 0,
-      timestamp: new Date().toISOString()
+    // Update map location on form submission
+    try {
+      const coordinates = await getLocationCoordinates(inputData.location)
+      console.log(`Location: ${inputData.location}, Coordinates: [${coordinates[0]}, ${coordinates[1]}]`)
+      setMapCenter(coordinates)
+      setMarkerPosition(coordinates)
+    } catch (error) {
+      console.error('Error getting coordinates:', error)
+      // Fallback to center of India
+      const fallbackCoords: [number, number] = [20.5937, 78.9629]
+      setMapCenter(fallbackCoords)
+      setMarkerPosition(fallbackCoords)
     }
 
-    setWaterData(prev => [...prev, newData])
-    
-    // Reset form
-    setInputData({
-      location: '',
-      latitude: '',
-      longitude: '',
-      districtName: '',
-      population: '',
-      groundwaterLevel: '',
-      ph: '',
-      ec: '', // Electrical Conductivity
-      tds: '',
-      th: '', // Total Hardness
-      ca: '', // Calcium
-      mg: '', // Magnesium
-      na: '', // Sodium
-      k: '', // Potassium
-      cl: '', // Chloride
-      so4: '', // Sulfate
-      nitrate: '',
-      fluoride: '',
-      uranium: '', // Uranium (ppb)
-      arsenic: '',
-      temperature: '',
-      wellDepth: '',
-      annualDomesticIndustryDraft: '',
-      annualIrrigationDraft: '',
-      annualGroundwaterDraftTotal: '',
-      annualReplenishableGroundwaterResources: '',
-      naturalDischargeNonMonsoon: '',
-      netGroundwaterAvailability: '',
-      projectedDemandDomesticIndustrial2025: '',
-      groundwaterAvailabilityFutureIrrigation: '',
-      stageGroundwaterDevelopment: ''
+    // POST to backend
+    fetch('http://127.0.0.1:8000/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(inputData)
     })
+    .then(async (response) => {
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || 'Failed to analyze data')
+      }
+      return response.json()
+    })
+  .then(() => {
+    // Add to local state as before
+    const newData = {
+        id: (waterData.length + 1).toString(),
+        location: inputData.location,
+        districtName: inputData.districtName || inputData.location,
+            population: inputData.population,
+            groundwaterLevel: parseFloat(inputData.groundwaterLevel) || 0,
+            ph: parseFloat(inputData.ph) || 7,
+            ec: parseFloat(inputData.ec) || 0,
+            tds: parseFloat(inputData.tds) || 0,
+            th: parseFloat(inputData.th) || 0,
+            ca: parseFloat(inputData.ca) || 0,
+            mg: parseFloat(inputData.mg) || 0,
+            na: parseFloat(inputData.na) || 0,
+            k: parseFloat(inputData.k) || 0,
+            cl: parseFloat(inputData.cl) || 0,
+            so4: parseFloat(inputData.so4) || 0,
+            nitrate: parseFloat(inputData.nitrate) || 0,
+            fluoride: parseFloat(inputData.fluoride) || 0,
+            uranium: parseFloat(inputData.uranium) || 0,
+            arsenic: parseFloat(inputData.arsenic) || 0,
+            temperature: parseFloat(inputData.temperature) || 25,
+            wellDepth: parseFloat(inputData.wellDepth) || 0,
+            annualDomesticIndustryDraft: parseFloat(inputData.annualDomesticIndustryDraft) || 0,
+            annualIrrigationDraft: parseFloat(inputData.annualIrrigationDraft) || 0,
+            annualGroundwaterDraftTotal: parseFloat(inputData.annualGroundwaterDraftTotal) || 0,
+            annualReplenishableGroundwaterResources: parseFloat(inputData.annualReplenishableGroundwaterResources) || 0,
+            naturalDischargeNonMonsoon: parseFloat(inputData.naturalDischargeNonMonsoon) || 0,
+            netGroundwaterAvailability: parseFloat(inputData.netGroundwaterAvailability) || 0,
+            projectedDemandDomesticIndustrial2025: parseFloat(inputData.projectedDemandDomesticIndustrial2025) || 0,
+            groundwaterAvailabilityFutureIrrigation: parseFloat(inputData.groundwaterAvailabilityFutureIrrigation) || 0,
+            stageGroundwaterDevelopment: parseFloat(inputData.stageGroundwaterDevelopment) || 0,
+            timestamp: new Date().toISOString()
+          }
+          setWaterData(prev => [...prev, newData])
+        //   setInputData({
+        // location: '',
+        // districtName: '',
+        //     population: '',
+        //     groundwaterLevel: '',
+        //     ph: '',
+        //     ec: '',
+        //     tds: '',
+        //     th: '',
+        //     ca: '',
+        //     mg: '',
+        //     na: '',
+        //     k: '',
+        //     cl: '',
+        //     so4: '',
+        //     nitrate: '',
+        //     fluoride: '',
+        //     uranium: '',
+        //     arsenic: '',
+        //     temperature: '',
+        //     wellDepth: '',
+        //     annualDomesticIndustryDraft: '',
+        //     annualIrrigationDraft: '',
+        //     annualGroundwaterDraftTotal: '',
+        //     annualReplenishableGroundwaterResources: '',
+        //     naturalDischargeNonMonsoon: '',
+        //     netGroundwaterAvailability: '',
+        //     projectedDemandDomesticIndustrial2025: '',
+        //     groundwaterAvailabilityFutureIrrigation: '',
+        //     stageGroundwaterDevelopment: ''
+        //   })
+        })
+        .catch((error) => {
+          alert('Error analyzing data: ' + error.message)
+        })
   }
 
   const handlePredictionSubmit = (addData: WaterInputData, predData: PredictionInputData) => {
     // First add the existing data
-    if (!addData.location || !addData.latitude || !addData.longitude) {
-      alert('Please fill in at least Location, Latitude, and Longitude in the existing data')
+    if (!addData.location) {
+      alert('Please fill in at least Location in the existing data')
       return
     }
 
     const newData: WaterData = {
       id: (waterData.length + 1).toString(),
       location: addData.location,
-      latitude: parseFloat(addData.latitude) || 0,
-      longitude: parseFloat(addData.longitude) || 0,
+  // latitude and longitude removed
       districtName: addData.districtName || addData.location,
-      population: parseInt(addData.population) || 0,
+  population: addData.population,
       groundwaterLevel: parseFloat(addData.groundwaterLevel) || 0,
       ph: parseFloat(addData.ph) || 7,
       ec: parseFloat(addData.ec) || 0,
@@ -340,29 +383,31 @@ const WaterMonitoringDashboard: React.FC<{
 
     setWaterData(prev => [...prev, newData])
 
-    // Here you would send the prediction data to your prediction API
-    console.log('Prediction data to be sent to API:', predData)
-    alert(`Data added successfully! Prediction request sent for location: ${predData.location}`)
-
-    // You can implement the actual API call here
-    // Example: 
-    // fetch('/api/predict', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(predData)
-    // }).then(response => response.json()).then(prediction => {
-    //   console.log('Prediction result:', prediction)
-    // })
+    fetch('http://127.0.0.1:8000/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        existing: addData,
+        for_prediction: predData
+      })
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Prediction request failed')
+        }
+        return response.json()
+      })
+      .catch(error => {
+        alert(`Prediction request failed: ${error.message}`)
+      })
   }
 
   const handleCsvUpload = (csvData: CsvRowData[]) => {
     const newWaterData: WaterData[] = csvData.map((row, index) => ({
       id: (waterData.length + index + 1).toString(),
       location: row.location || '',
-      latitude: parseFloat(String(row.latitude)) || 0,
-      longitude: parseFloat(String(row.longitude)) || 0,
       districtName: row.districtName || row.location || '',
-      population: parseInt(String(row.population)) || 0,
+      population: String(row.population) || '',
       groundwaterLevel: parseFloat(String(row.groundwaterLevel)) || 0,
       ph: parseFloat(String(row.ph)) || 7,
       ec: parseFloat(String(row.ec)) || 0, // Electrical Conductivity
@@ -917,8 +962,9 @@ const WaterMonitoringDashboard: React.FC<{
             <CardContent>
               <div className="h-64 sm:h-80 lg:h-96 w-full rounded-lg overflow-hidden">
                 <MapContainer
-                  center={[10.8505, 76.2711]}
-                  zoom={7}
+                  key={`${mapCenter[0]}-${mapCenter[1]}`}
+                  center={mapCenter}
+                  zoom={10}
                   style={{ height: '100%', width: '100%' }}
                   attributionControl={false}
                 >
@@ -926,25 +972,21 @@ const WaterMonitoringDashboard: React.FC<{
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution=""
                   />
-                  {waterData.map(data => {
-                    const quality = getWaterQuality(data.ph, data.tds, data.nitrate, data.fluoride, data.arsenic)
-                    return (
-                      <Marker
-                        key={data.id}
-                        position={[data.latitude, data.longitude]}
-                      >
-                        <Popup>
-                          <div className="p-2">
-                            <h3 className="font-bold">{data.location}</h3>
-                            <p>Quality: <span className={`px-2 py-1 rounded text-white text-xs ${quality.color}`}>{quality.status}</span></p>
-                            <p>pH: {data.ph}</p>
-                            <p>TDS: {data.tds} mg/L</p>
-                            <p>Population: {data.population.toLocaleString()}</p>
-                          </div>
-                        </Popup>
-                      </Marker>
-                    )
-                  })}
+                  {markerPosition && inputData.location.trim() && (
+                    <Marker position={markerPosition}>
+                      <Popup>
+                        <div className="p-2">
+                          <h3 className="font-bold">{inputData.location}</h3>
+                          {inputData.districtName && (
+                            <p>District: {inputData.districtName}</p>
+                          )}
+                          {inputData.population && (
+                            <p>Population: {parseInt(inputData.population).toLocaleString()}</p>
+                          )}
+                        </div>
+                      </Popup>
+                    </Marker>
+                  )}
                 </MapContainer>
               </div>
             </CardContent>

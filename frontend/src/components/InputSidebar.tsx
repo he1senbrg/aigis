@@ -10,11 +10,9 @@ import { FileText, Plus, Upload, X } from 'lucide-react'
 import React, { useRef, useState } from 'react'
 
 interface WaterInputData {
-  location: string
-  latitude: string
-  longitude: string
-  districtName: string
-  population: string
+  location: string;
+  districtName: string;
+  population: string;
   groundwaterLevel: string
   ph: string
   ec: string // Electrical Conductivity
@@ -156,15 +154,6 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
             case 'location name':
               rowData.location = value
               break
-            case 'latitude':
-            case 'lat':
-              rowData.latitude = value
-              break
-            case 'longitude':
-            case 'lng':
-            case 'lon':
-              rowData.longitude = value
-              break
             case 'district':
             case 'district name':
               rowData.districtName = value
@@ -288,8 +277,6 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
         // Fill in empty fields with default values
         const completeRowData: WaterInputData = {
           location: rowData.location || '',
-          latitude: rowData.latitude || '',
-          longitude: rowData.longitude || '',
           districtName: rowData.districtName || rowData.location || '',
           population: rowData.population || '',
           groundwaterLevel: rowData.groundwaterLevel || '',
