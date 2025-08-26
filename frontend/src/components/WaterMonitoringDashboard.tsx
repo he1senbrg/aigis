@@ -1,6 +1,6 @@
 'use client'
 
-import { InputSidebar } from '@/components/InputSidebar'
+import { InputSidebar, PredictionInputData, WaterInputData } from '@/components/InputSidebar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -31,9 +31,18 @@ interface WaterData {
   population: number
   groundwaterLevel: number
   ph: number
+  ec: number // Electrical Conductivity
   tds: number
+  th: number // Total Hardness
+  ca: number // Calcium
+  mg: number // Magnesium
+  na: number // Sodium
+  k: number // Potassium
+  cl: number // Chloride
+  so4: number // Sulfate
   nitrate: number
   fluoride: number
+  uranium: number // Uranium (ppb)
   arsenic: number
   temperature: number
   wellDepth: number
@@ -57,9 +66,18 @@ interface CsvRowData {
   population?: string | number
   groundwaterLevel?: string | number
   ph?: string | number
+  ec?: string | number // Electrical Conductivity
   tds?: string | number
+  th?: string | number // Total Hardness
+  ca?: string | number // Calcium
+  mg?: string | number // Magnesium
+  na?: string | number // Sodium
+  k?: string | number // Potassium
+  cl?: string | number // Chloride
+  so4?: string | number // Sulfate
   nitrate?: string | number
   fluoride?: string | number
+  uranium?: string | number // Uranium (ppb)
   arsenic?: string | number
   temperature?: string | number
   wellDepth?: string | number
@@ -72,31 +90,6 @@ interface CsvRowData {
   projectedDemandDomesticIndustrial2025?: string | number
   groundwaterAvailabilityFutureIrrigation?: string | number
   stageGroundwaterDevelopment?: string | number
-}
-
-interface WaterInputData {
-  location: string
-  latitude: string
-  longitude: string
-  districtName: string
-  population: string
-  groundwaterLevel: string
-  ph: string
-  tds: string
-  nitrate: string
-  fluoride: string
-  arsenic: string
-  temperature: string
-  wellDepth: string
-  annualDomesticIndustryDraft: string
-  annualIrrigationDraft: string
-  annualGroundwaterDraftTotal: string
-  annualReplenishableGroundwaterResources: string
-  naturalDischargeNonMonsoon: string
-  netGroundwaterAvailability: string
-  projectedDemandDomesticIndustrial2025: string
-  groundwaterAvailabilityFutureIrrigation: string
-  stageGroundwaterDevelopment: string
 }
 
 const indianLanguages = [
@@ -151,9 +144,18 @@ const WaterMonitoringDashboard: React.FC = () => {
       population: 2629000,
       groundwaterLevel: 8.5,
       ph: 7.2,
+      ec: 680, // Electrical Conductivity (µS/cm)
       tds: 450,
+      th: 220, // Total Hardness (mg/L)
+      ca: 65, // Calcium (mg/L)
+      mg: 18, // Magnesium (mg/L)
+      na: 45, // Sodium (mg/L)
+      k: 8, // Potassium (mg/L)
+      cl: 85, // Chloride (mg/L)
+      so4: 32, // Sulfate (mg/L)
       nitrate: 25,
       fluoride: 0.8,
+      uranium: 2.5, // Uranium (ppb)
       arsenic: 5,
       temperature: 28,
       wellDepth: 25,
@@ -178,9 +180,18 @@ const WaterMonitoringDashboard: React.FC = () => {
     population: '',
     groundwaterLevel: '',
     ph: '',
+    ec: '', // Electrical Conductivity
     tds: '',
+    th: '', // Total Hardness
+    ca: '', // Calcium
+    mg: '', // Magnesium
+    na: '', // Sodium
+    k: '', // Potassium
+    cl: '', // Chloride
+    so4: '', // Sulfate
     nitrate: '',
     fluoride: '',
+    uranium: '', // Uranium (ppb)
     arsenic: '',
     temperature: '',
     wellDepth: '',
@@ -216,9 +227,18 @@ const WaterMonitoringDashboard: React.FC = () => {
       population: parseInt(inputData.population) || 0,
       groundwaterLevel: parseFloat(inputData.groundwaterLevel) || 0,
       ph: parseFloat(inputData.ph) || 7,
+      ec: parseFloat(inputData.ec) || 0, // Electrical Conductivity
       tds: parseFloat(inputData.tds) || 0,
+      th: parseFloat(inputData.th) || 0, // Total Hardness
+      ca: parseFloat(inputData.ca) || 0, // Calcium
+      mg: parseFloat(inputData.mg) || 0, // Magnesium
+      na: parseFloat(inputData.na) || 0, // Sodium
+      k: parseFloat(inputData.k) || 0, // Potassium
+      cl: parseFloat(inputData.cl) || 0, // Chloride
+      so4: parseFloat(inputData.so4) || 0, // Sulfate
       nitrate: parseFloat(inputData.nitrate) || 0,
       fluoride: parseFloat(inputData.fluoride) || 0,
+      uranium: parseFloat(inputData.uranium) || 0, // Uranium (ppb)
       arsenic: parseFloat(inputData.arsenic) || 0,
       temperature: parseFloat(inputData.temperature) || 25,
       wellDepth: parseFloat(inputData.wellDepth) || 0,
@@ -245,9 +265,18 @@ const WaterMonitoringDashboard: React.FC = () => {
       population: '',
       groundwaterLevel: '',
       ph: '',
+      ec: '', // Electrical Conductivity
       tds: '',
+      th: '', // Total Hardness
+      ca: '', // Calcium
+      mg: '', // Magnesium
+      na: '', // Sodium
+      k: '', // Potassium
+      cl: '', // Chloride
+      so4: '', // Sulfate
       nitrate: '',
       fluoride: '',
+      uranium: '', // Uranium (ppb)
       arsenic: '',
       temperature: '',
       wellDepth: '',
@@ -263,6 +292,66 @@ const WaterMonitoringDashboard: React.FC = () => {
     })
   }
 
+  const handlePredictionSubmit = (addData: WaterInputData, predData: PredictionInputData) => {
+    // First add the existing data
+    if (!addData.location || !addData.latitude || !addData.longitude) {
+      alert('Please fill in at least Location, Latitude, and Longitude in the existing data')
+      return
+    }
+
+    const newData: WaterData = {
+      id: (waterData.length + 1).toString(),
+      location: addData.location,
+      latitude: parseFloat(addData.latitude) || 0,
+      longitude: parseFloat(addData.longitude) || 0,
+      districtName: addData.districtName || addData.location,
+      population: parseInt(addData.population) || 0,
+      groundwaterLevel: parseFloat(addData.groundwaterLevel) || 0,
+      ph: parseFloat(addData.ph) || 7,
+      ec: parseFloat(addData.ec) || 0,
+      tds: parseFloat(addData.tds) || 0,
+      th: parseFloat(addData.th) || 0,
+      ca: parseFloat(addData.ca) || 0,
+      mg: parseFloat(addData.mg) || 0,
+      na: parseFloat(addData.na) || 0,
+      k: parseFloat(addData.k) || 0,
+      cl: parseFloat(addData.cl) || 0,
+      so4: parseFloat(addData.so4) || 0,
+      nitrate: parseFloat(addData.nitrate) || 0,
+      fluoride: parseFloat(addData.fluoride) || 0,
+      uranium: parseFloat(addData.uranium) || 0,
+      arsenic: parseFloat(addData.arsenic) || 0,
+      temperature: parseFloat(addData.temperature) || 25,
+      wellDepth: parseFloat(addData.wellDepth) || 0,
+      annualDomesticIndustryDraft: parseFloat(addData.annualDomesticIndustryDraft) || 0,
+      annualIrrigationDraft: parseFloat(addData.annualIrrigationDraft) || 0,
+      annualGroundwaterDraftTotal: parseFloat(addData.annualGroundwaterDraftTotal) || 0,
+      annualReplenishableGroundwaterResources: parseFloat(addData.annualReplenishableGroundwaterResources) || 0,
+      naturalDischargeNonMonsoon: parseFloat(addData.naturalDischargeNonMonsoon) || 0,
+      netGroundwaterAvailability: parseFloat(addData.netGroundwaterAvailability) || 0,
+      projectedDemandDomesticIndustrial2025: parseFloat(addData.projectedDemandDomesticIndustrial2025) || 0,
+      groundwaterAvailabilityFutureIrrigation: parseFloat(addData.groundwaterAvailabilityFutureIrrigation) || 0,
+      stageGroundwaterDevelopment: parseFloat(addData.stageGroundwaterDevelopment) || 0,
+      timestamp: new Date().toISOString()
+    }
+
+    setWaterData(prev => [...prev, newData])
+
+    // Here you would send the prediction data to your prediction API
+    console.log('Prediction data to be sent to API:', predData)
+    alert(`Data added successfully! Prediction request sent for location: ${predData.location}`)
+
+    // You can implement the actual API call here
+    // Example: 
+    // fetch('/api/predict', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(predData)
+    // }).then(response => response.json()).then(prediction => {
+    //   console.log('Prediction result:', prediction)
+    // })
+  }
+
   const handleCsvUpload = (csvData: CsvRowData[]) => {
     const newWaterData: WaterData[] = csvData.map((row, index) => ({
       id: (waterData.length + index + 1).toString(),
@@ -273,9 +362,18 @@ const WaterMonitoringDashboard: React.FC = () => {
       population: parseInt(String(row.population)) || 0,
       groundwaterLevel: parseFloat(String(row.groundwaterLevel)) || 0,
       ph: parseFloat(String(row.ph)) || 7,
+      ec: parseFloat(String(row.ec)) || 0, // Electrical Conductivity
       tds: parseFloat(String(row.tds)) || 0,
+      th: parseFloat(String(row.th)) || 0, // Total Hardness
+      ca: parseFloat(String(row.ca)) || 0, // Calcium
+      mg: parseFloat(String(row.mg)) || 0, // Magnesium
+      na: parseFloat(String(row.na)) || 0, // Sodium
+      k: parseFloat(String(row.k)) || 0, // Potassium
+      cl: parseFloat(String(row.cl)) || 0, // Chloride
+      so4: parseFloat(String(row.so4)) || 0, // Sulfate
       nitrate: parseFloat(String(row.nitrate)) || 0,
       fluoride: parseFloat(String(row.fluoride)) || 0,
+      uranium: parseFloat(String(row.uranium)) || 0, // Uranium (ppb)
       arsenic: parseFloat(String(row.arsenic)) || 0,
       temperature: parseFloat(String(row.temperature)) || 25,
       wellDepth: parseFloat(String(row.wellDepth)) || 0,
@@ -833,6 +931,7 @@ const WaterMonitoringDashboard: React.FC = () => {
         onInputChange={handleInputChange}
         onSubmit={handleSubmit}
         onCsvUpload={handleCsvUpload}
+        onPredictionSubmit={handlePredictionSubmit}
         className="w-[35%] border-l border-border bg-card/50 overflow-y-auto scrollbar-thin"
       />
     </div>
