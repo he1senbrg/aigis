@@ -295,6 +295,82 @@ const WaterMonitoringDashboard: React.FC = () => {
     alert(`Successfully imported ${newWaterData.length} records from CSV`)
   }
 
+  const getGroundwaterClassification = (stageOfDevelopment: number) => {
+    if (stageOfDevelopment <= 70) {
+      return { status: 'Safe', color: 'bg-green-500' }
+    } else if (stageOfDevelopment <= 90) {
+      return { status: 'Semi-Critical', color: 'bg-yellow-500' }
+    } else if (stageOfDevelopment <= 100) {
+      return { status: 'Critical', color: 'bg-orange-500' }
+    } else {
+      return { status: 'Over-Exploited', color: 'bg-red-500' }
+    }
+  }
+
+  const getPotabilityScore = (ph: number, tds: number, nitrate: number, fluoride: number, arsenic: number) => {
+    let score = 100
+    const contributions: { [key: string]: number } = {}
+    const failedThresholds: string[] = []
+
+    // WHO/BIS thresholds and scoring
+    if (ph < 6.5 || ph > 8.5) {
+      const deduction = Math.abs(ph - 7.25) * 10
+      contributions['pH'] = -Math.min(deduction, 15)
+      score += contributions['pH']
+      failedThresholds.push('pH (6.5-8.5)')
+    } else {
+      contributions['pH'] = 0
+    }
+
+    if (tds > 500) {
+      const deduction = ((tds - 500) / 500) * 20
+      contributions['TDS'] = -Math.min(deduction, 25)
+      score += contributions['TDS']
+      failedThresholds.push('TDS (≤500 mg/L)')
+    } else {
+      contributions['TDS'] = 0
+    }
+
+    if (nitrate > 45) {
+      const deduction = ((nitrate - 45) / 45) * 20
+      contributions['Nitrate'] = -Math.min(deduction, 25)
+      score += contributions['Nitrate']
+      failedThresholds.push('Nitrate (≤45 mg/L)')
+    } else {
+      contributions['Nitrate'] = 0
+    }
+
+    if (fluoride > 1.5 || fluoride < 0.6) {
+      const deduction = fluoride > 1.5 ? ((fluoride - 1.5) / 1.5) * 15 : ((0.6 - fluoride) / 0.6) * 10
+      contributions['Fluoride'] = -Math.min(deduction, 20)
+      score += contributions['Fluoride']
+      failedThresholds.push('Fluoride (0.6-1.5 mg/L)')
+    } else {
+      contributions['Fluoride'] = 0
+    }
+
+    if (arsenic > 10) {
+      const deduction = ((arsenic - 10) / 10) * 30
+      contributions['Arsenic'] = -Math.min(deduction, 35)
+      score += contributions['Arsenic']
+      failedThresholds.push('Arsenic (≤10 μg/L)')
+    } else {
+      contributions['Arsenic'] = 0
+    }
+
+    const finalScore = Math.max(0, Math.min(100, score))
+    const isSafe = finalScore >= 70
+    
+    return {
+      score: Math.round(finalScore),
+      isSafe,
+      contributions,
+      failedThresholds,
+      status: isSafe ? 'Safe' : 'Critical',
+      color: isSafe ? 'bg-green-500' : 'bg-red-500'
+    }
+  }
+
   const getWaterQuality = (ph: number, tds: number, nitrate: number, fluoride: number, arsenic: number) => {
     let riskLevel = 0
     const riskFactors: string[] = []
@@ -408,7 +484,7 @@ const WaterMonitoringDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground">AIGIS Water Monitoring</h1>
-              <p className="text-muted-foreground">Real-time water quality monitoring and analysis</p>
+              {/* <p className="text-muted-foreground">Real-time water quality monitoring and analysis</p> */}
             </div>
             {/* Dark Mode Toggle */}
             <Button
@@ -490,6 +566,37 @@ const WaterMonitoringDashboard: React.FC = () => {
                 </CardContent>
               </Card>
             </div>
+            
+            {/* Second row for additional GW Resource boxes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Stage of GW Development</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {waterData.length > 0 ? (waterData.reduce((sum, data) => sum + data.stageGroundwaterDevelopment, 0) / waterData.length).toFixed(1) : '0'}%
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">GW Classification</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const avgStage = waterData.length > 0 ? (waterData.reduce((sum, data) => sum + data.stageGroundwaterDevelopment, 0) / waterData.length) : 0
+                    const classification = getGroundwaterClassification(avgStage)
+                    return (
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${classification.color}`}></div>
+                        <div className="text-lg font-bold">{classification.status}</div>
+                      </div>
+                    )
+                  })()}
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           {/* GW Quality Section */}
@@ -543,6 +650,137 @@ const WaterMonitoringDashboard: React.FC = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Second row for additional GW Quality boxes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Water Safety Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    if (waterData.length === 0) return <div className="text-lg font-bold">No Data</div>
+                    const avgPh = waterData.reduce((sum, data) => sum + data.ph, 0) / waterData.length
+                    const avgTds = waterData.reduce((sum, data) => sum + data.tds, 0) / waterData.length
+                    const avgNitrate = waterData.reduce((sum, data) => sum + data.nitrate, 0) / waterData.length
+                    const avgFluoride = waterData.reduce((sum, data) => sum + data.fluoride, 0) / waterData.length
+                    const avgArsenic = waterData.reduce((sum, data) => sum + data.arsenic, 0) / waterData.length
+                    const potability = getPotabilityScore(avgPh, avgTds, avgNitrate, avgFluoride, avgArsenic)
+                    return (
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${potability.color}`}></div>
+                        <div className="text-lg font-bold">{potability.status}</div>
+                      </div>
+                    )
+                  })()}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Potability Score</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {(() => {
+                      if (waterData.length === 0) return '0'
+                      const avgPh = waterData.reduce((sum, data) => sum + data.ph, 0) / waterData.length
+                      const avgTds = waterData.reduce((sum, data) => sum + data.tds, 0) / waterData.length
+                      const avgNitrate = waterData.reduce((sum, data) => sum + data.nitrate, 0) / waterData.length
+                      const avgFluoride = waterData.reduce((sum, data) => sum + data.fluoride, 0) / waterData.length
+                      const avgArsenic = waterData.reduce((sum, data) => sum + data.arsenic, 0) / waterData.length
+                      const potability = getPotabilityScore(avgPh, avgTds, avgNitrate, avgFluoride, avgArsenic)
+                      return `${potability.score}/100`
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Potability Analysis Table */}
+            {waterData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Potability Analysis</CardTitle>
+                  <CardDescription>Chemical contributions to potability score and WHO/BIS threshold compliance</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Parameter</TableHead>
+                          <TableHead>Current Value</TableHead>
+                          <TableHead>WHO/BIS Threshold</TableHead>
+                          <TableHead>Score Contribution</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(() => {
+                          const avgPh = waterData.reduce((sum, data) => sum + data.ph, 0) / waterData.length
+                          const avgTds = waterData.reduce((sum, data) => sum + data.tds, 0) / waterData.length
+                          const avgNitrate = waterData.reduce((sum, data) => sum + data.nitrate, 0) / waterData.length
+                          const avgFluoride = waterData.reduce((sum, data) => sum + data.fluoride, 0) / waterData.length
+                          const avgArsenic = waterData.reduce((sum, data) => sum + data.arsenic, 0) / waterData.length
+                          const potability = getPotabilityScore(avgPh, avgTds, avgNitrate, avgFluoride, avgArsenic)
+                          
+                          const parameters = [
+                            { name: 'pH', value: avgPh.toFixed(1), threshold: '6.5-8.5', contribution: potability.contributions['pH'] },
+                            { name: 'TDS', value: `${Math.round(avgTds)} mg/L`, threshold: '≤500 mg/L', contribution: potability.contributions['TDS'] },
+                            { name: 'Nitrate', value: `${avgNitrate.toFixed(1)} mg/L`, threshold: '≤45 mg/L', contribution: potability.contributions['Nitrate'] },
+                            { name: 'Fluoride', value: `${avgFluoride.toFixed(1)} mg/L`, threshold: '0.6-1.5 mg/L', contribution: potability.contributions['Fluoride'] },
+                            { name: 'Arsenic', value: `${avgArsenic.toFixed(1)} μg/L`, threshold: '≤10 μg/L', contribution: potability.contributions['Arsenic'] }
+                          ]
+                          
+                          return parameters.map((param, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="font-medium">{param.name}</TableCell>
+                              <TableCell>{param.value}</TableCell>
+                              <TableCell>{param.threshold}</TableCell>
+                              <TableCell className={param.contribution < 0 ? 'text-red-500' : 'text-green-600'}>
+                                {param.contribution === 0 ? '0' : param.contribution.toFixed(1)}
+                              </TableCell>
+                              <TableCell>
+                                <Badge 
+                                  variant={param.contribution === 0 ? 'default' : 'destructive'}
+                                  className={param.contribution === 0 ? 'bg-green-100 text-green-800' : ''}
+                                >
+                                  {param.contribution === 0 ? 'Pass' : 'Fail'}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        })()}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {(() => {
+                    const avgPh = waterData.reduce((sum, data) => sum + data.ph, 0) / waterData.length
+                    const avgTds = waterData.reduce((sum, data) => sum + data.tds, 0) / waterData.length
+                    const avgNitrate = waterData.reduce((sum, data) => sum + data.nitrate, 0) / waterData.length
+                    const avgFluoride = waterData.reduce((sum, data) => sum + data.fluoride, 0) / waterData.length
+                    const avgArsenic = waterData.reduce((sum, data) => sum + data.arsenic, 0) / waterData.length
+                    const potability = getPotabilityScore(avgPh, avgTds, avgNitrate, avgFluoride, avgArsenic)
+                    
+                    if (potability.failedThresholds.length > 0) {
+                      return (
+                        <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                          <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">Failed WHO/BIS Thresholds:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {potability.failedThresholds.map((threshold, index) => (
+                              <Badge key={index} variant="destructive" className="text-xs">
+                                {threshold}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    }
+                    return null
+                  })()}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Map */}
@@ -583,53 +821,6 @@ const WaterMonitoringDashboard: React.FC = () => {
                     )
                   })}
                 </MapContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Data Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Monitoring Data</CardTitle>
-              <CardDescription>Detailed water monitoring information</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Depth (m)</TableHead>
-                      <TableHead>pH</TableHead>
-                      <TableHead>TDS (mg/L)</TableHead>
-                      <TableHead>Nitrate (mg/L)</TableHead>
-                      <TableHead>Fluoride (mg/L)</TableHead>
-                      <TableHead>Arsenic (μg/L)</TableHead>
-                      <TableHead>Quality</TableHead>
-                      <TableHead>Last Updated</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {waterData.map(data => {
-                      const quality = getWaterQuality(data.ph, data.tds, data.nitrate, data.fluoride, data.arsenic)
-                      return (
-                        <TableRow key={data.id}>
-                          <TableCell className="font-medium">{data.location}</TableCell>
-                          <TableCell>{data.groundwaterLevel}m</TableCell>
-                          <TableCell>{data.ph}</TableCell>
-                          <TableCell>{data.tds}</TableCell>
-                          <TableCell>{data.nitrate}</TableCell>
-                          <TableCell>{data.fluoride}</TableCell>
-                          <TableCell>{data.arsenic}</TableCell>
-                          <TableCell>
-                            <Badge className={quality.color}>{quality.status}</Badge>
-                          </TableCell>
-                          <TableCell>{new Date(data.timestamp).toLocaleString()}</TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
               </div>
             </CardContent>
           </Card>

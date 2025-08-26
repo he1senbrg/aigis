@@ -447,7 +447,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                 {/* Groundwater Assessment Parameters */}
                 <div className="mt-4 pt-2 border-t border-border">
                   <h4 className="text-xs font-medium mb-2">Groundwater Assessment Parameters</h4>
-                  <div className="space-y-2">
+                  <div className="space-y-5">
                     <div>
                       <Label htmlFor="annualDomesticIndustryDraft" className="text-xs">Annual Domestic/Industry Draft (MCM)</Label>
                       <Input
