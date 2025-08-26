@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { FileText, Upload, X, Plus } from 'lucide-react'
+import { FileText, Plus, Upload, X } from 'lucide-react'
 import React, { useRef, useState } from 'react'
 
 interface WaterInputData {
@@ -84,6 +84,7 @@ interface InputSidebarProps {
   onCsvUpload?: (data: WaterInputData[]) => void
   onPredictionSubmit?: (addData: WaterInputData, predData: PredictionInputData) => void
   className?: string
+  isMobile?: boolean
 }
 
 export const InputSidebar: React.FC<InputSidebarProps> = ({
@@ -92,7 +93,8 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
   onSubmit,
   onCsvUpload,
   onPredictionSubmit,
-  className
+  className,
+  isMobile = false
 }) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -391,10 +393,10 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
   }
   return (
     <div className={className}>
-      <div className="p-4 space-y-4">
+      <div className={`${isMobile ? 'p-3' : 'p-4'} space-y-3 ${isMobile ? 'space-y-3' : 'space-y-4'}`}>
         {/* Header */}
         <div className="text-center">
-          <h2 className="text-lg font-bold text-foreground">Add Data</h2>
+          <h2 className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-foreground`}>Add Data</h2>
           <p className="mt-1 text-xs text-muted-foreground">Enter new monitoring data</p>
         </div>
 
@@ -404,7 +406,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
             <TabsTrigger value="prediction" className="text-xs">Prediction</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="existing" className="space-y-4">
+          <TabsContent value="existing" className={`${isMobile ? 'space-y-3' : 'space-y-4'}`}>
 
         {/* CSV Upload Section */}
         <Card>
@@ -477,7 +479,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="space-y-3">
-              <div className="space-y-5">
+              <div className={`${isMobile ? 'space-y-2' : 'space-y-5'}`}>
                 <div>
                   <Label htmlFor="location" className="text-xs">Location Name</Label>
                   <Input
@@ -485,7 +487,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                     value={inputData.location}
                     onChange={(e) => onInputChange('location', e.target.value)}
                     placeholder="e.g., Clappana"
-                    className="text-xs h-8"
+                    className={`text-xs ${isMobile ? 'h-7' : 'h-8'}`}
                   />
                 </div>
                 <div>
@@ -495,7 +497,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                     value={inputData.districtName}
                     onChange={(e) => onInputChange('districtName', e.target.value)}
                     placeholder="e.g., Kollam"
-                    className="text-xs h-8"
+                    className={`text-xs ${isMobile ? 'h-7' : 'h-8'}`}
                   />
                 </div>
                 <div>
@@ -506,7 +508,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                     value={inputData.population}
                     onChange={(e) => onInputChange('population', e.target.value)}
                     placeholder="2629000"
-                    className="text-xs h-8"
+                    className="text-xs h-7 sm:h-8"
                   />
                 </div>
                 <div>
@@ -518,7 +520,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                     value={inputData.groundwaterLevel}
                     onChange={(e) => onInputChange('groundwaterLevel', e.target.value)}
                     placeholder="8.5"
-                    className="text-xs h-8"
+                    className="text-xs h-7 sm:h-8"
                   />
                 </div>
                                     {/* Water Quality Parameters */}
@@ -534,7 +536,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.ph}
                             onChange={(e) => onPredictionInputChange('ph', e.target.value)}
                             placeholder="7.2"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -546,7 +548,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.ec}
                             onChange={(e) => onPredictionInputChange('ec', e.target.value)}
                             placeholder="800"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -558,7 +560,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.tds}
                             onChange={(e) => onPredictionInputChange('tds', e.target.value)}
                             placeholder="400"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -570,7 +572,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.th}
                             onChange={(e) => onPredictionInputChange('th', e.target.value)}
                             placeholder="300"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -582,7 +584,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.ca}
                             onChange={(e) => onPredictionInputChange('ca', e.target.value)}
                             placeholder="80"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -594,7 +596,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.mg}
                             onChange={(e) => onPredictionInputChange('mg', e.target.value)}
                             placeholder="25"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -606,7 +608,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.na}
                             onChange={(e) => onPredictionInputChange('na', e.target.value)}
                             placeholder="50"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -618,7 +620,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.k}
                             onChange={(e) => onPredictionInputChange('k', e.target.value)}
                             placeholder="10"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -630,7 +632,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.cl}
                             onChange={(e) => onPredictionInputChange('cl', e.target.value)}
                             placeholder="100"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -642,7 +644,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.so4}
                             onChange={(e) => onPredictionInputChange('so4', e.target.value)}
                             placeholder="50"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -654,7 +656,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.nitrate}
                             onChange={(e) => onPredictionInputChange('nitrate', e.target.value)}
                             placeholder="10"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -666,7 +668,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.fluoride}
                             onChange={(e) => onPredictionInputChange('fluoride', e.target.value)}
                             placeholder="0.8"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -678,7 +680,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.uranium}
                             onChange={(e) => onPredictionInputChange('uranium', e.target.value)}
                             placeholder="5"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -690,7 +692,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.arsenic}
                             onChange={(e) => onPredictionInputChange('arsenic', e.target.value)}
                             placeholder="0.005"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -702,7 +704,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.temperature}
                             onChange={(e) => onPredictionInputChange('temperature', e.target.value)}
                             placeholder="25"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -714,7 +716,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.wellDepth}
                             onChange={(e) => onPredictionInputChange('wellDepth', e.target.value)}
                             placeholder="30"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                       </div>
@@ -733,7 +735,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={inputData.annualDomesticIndustryDraft}
                         onChange={(e) => onInputChange('annualDomesticIndustryDraft', e.target.value)}
                         placeholder="45.67"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -745,7 +747,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={inputData.annualIrrigationDraft}
                         onChange={(e) => onInputChange('annualIrrigationDraft', e.target.value)}
                         placeholder="189.23"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -757,7 +759,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={inputData.annualGroundwaterDraftTotal}
                         onChange={(e) => onInputChange('annualGroundwaterDraftTotal', e.target.value)}
                         placeholder="234.9"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -769,7 +771,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={inputData.annualReplenishableGroundwaterResources}
                         onChange={(e) => onInputChange('annualReplenishableGroundwaterResources', e.target.value)}
                         placeholder="234.9"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -781,7 +783,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={inputData.naturalDischargeNonMonsoon}
                         onChange={(e) => onInputChange('naturalDischargeNonMonsoon', e.target.value)}
                         placeholder="23.49"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -793,7 +795,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={inputData.netGroundwaterAvailability}
                         onChange={(e) => onInputChange('netGroundwaterAvailability', e.target.value)}
                         placeholder="211.41"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -805,7 +807,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={inputData.projectedDemandDomesticIndustrial2025}
                         onChange={(e) => onInputChange('projectedDemandDomesticIndustrial2025', e.target.value)}
                         placeholder="59.33"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -817,7 +819,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={inputData.groundwaterAvailabilityFutureIrrigation}
                         onChange={(e) => onInputChange('groundwaterAvailabilityFutureIrrigation', e.target.value)}
                         placeholder="152.08"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -829,7 +831,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={inputData.stageGroundwaterDevelopment}
                         onChange={(e) => onInputChange('stageGroundwaterDevelopment', e.target.value)}
                         placeholder="111.11"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                   </div>
@@ -860,7 +862,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={predictionData.location}
                         onChange={(e) => onPredictionInputChange('location', e.target.value)}
                         placeholder="e.g., Clappana"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -870,7 +872,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={predictionData.districtName}
                         onChange={(e) => onPredictionInputChange('districtName', e.target.value)}
                         placeholder="e.g., Trivandrum"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -881,7 +883,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={predictionData.population}
                         onChange={(e) => onPredictionInputChange('population', e.target.value)}
                         placeholder="e.g., 5000"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
                     <div>
@@ -893,7 +895,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                         value={predictionData.groundwaterLevel}
                         onChange={(e) => onPredictionInputChange('groundwaterLevel', e.target.value)}
                         placeholder="e.g., 4.3"
-                        className="text-xs h-8"
+                        className="text-xs h-7 sm:h-8"
                       />
                     </div>
 
@@ -910,7 +912,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.ph}
                             onChange={(e) => onPredictionInputChange('ph', e.target.value)}
                             placeholder="7.2"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -922,7 +924,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.ec}
                             onChange={(e) => onPredictionInputChange('ec', e.target.value)}
                             placeholder="800"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -934,7 +936,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.tds}
                             onChange={(e) => onPredictionInputChange('tds', e.target.value)}
                             placeholder="400"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -946,7 +948,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.th}
                             onChange={(e) => onPredictionInputChange('th', e.target.value)}
                             placeholder="300"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -958,7 +960,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.ca}
                             onChange={(e) => onPredictionInputChange('ca', e.target.value)}
                             placeholder="80"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -970,7 +972,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.mg}
                             onChange={(e) => onPredictionInputChange('mg', e.target.value)}
                             placeholder="25"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -982,7 +984,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.na}
                             onChange={(e) => onPredictionInputChange('na', e.target.value)}
                             placeholder="50"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -994,7 +996,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.k}
                             onChange={(e) => onPredictionInputChange('k', e.target.value)}
                             placeholder="10"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -1006,7 +1008,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.cl}
                             onChange={(e) => onPredictionInputChange('cl', e.target.value)}
                             placeholder="100"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -1018,7 +1020,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.so4}
                             onChange={(e) => onPredictionInputChange('so4', e.target.value)}
                             placeholder="50"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -1030,7 +1032,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.nitrate}
                             onChange={(e) => onPredictionInputChange('nitrate', e.target.value)}
                             placeholder="10"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -1042,7 +1044,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.fluoride}
                             onChange={(e) => onPredictionInputChange('fluoride', e.target.value)}
                             placeholder="0.8"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -1054,7 +1056,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.uranium}
                             onChange={(e) => onPredictionInputChange('uranium', e.target.value)}
                             placeholder="5"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                         <div>
@@ -1066,7 +1068,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                             value={predictionData.arsenic}
                             onChange={(e) => onPredictionInputChange('arsenic', e.target.value)}
                             placeholder="0.005"
-                            className="text-xs h-8"
+                            className="text-xs h-7 sm:h-8"
                           />
                         </div>
                       </div>
@@ -1109,7 +1111,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                                 value={param.type}
                                 onValueChange={(value) => updateGroundwaterParameter(param.id, 'type', value)}
                               >
-                                <SelectTrigger className="text-xs h-8">
+                                <SelectTrigger className="text-xs h-7 sm:h-8">
                                   <SelectValue placeholder="Select parameter type" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -1130,7 +1132,7 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
                                 value={param.value}
                                 onChange={(e) => updateGroundwaterParameter(param.id, 'value', e.target.value)}
                                 placeholder="Enter value"
-                                className="text-xs h-8"
+                                className="text-xs h-7 sm:h-8"
                               />
                             </div>
                           </div>

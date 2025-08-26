@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import jsPDF from 'jspdf'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Moon, Sun } from 'lucide-react'
+import { Menu, Moon, Sun } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 
@@ -118,9 +118,12 @@ const indianLanguages = [
   { value: 'sanskrit', label: 'संस्कृतम् (Sanskrit)' }
 ]
 
-const WaterMonitoringDashboard: React.FC = () => {
+const WaterMonitoringDashboard: React.FC<{
+  setMobileMenuOpen?: (open: boolean) => void
+}> = ({ setMobileMenuOpen }) => {
   const [darkMode, setDarkMode] = useState(true)
   const [reportLanguage, setReportLanguage] = useState('english')
+  const [mobileInputVisible, setMobileInputVisible] = useState(false)
   
   useEffect(() => {
     if (darkMode) {
@@ -574,12 +577,36 @@ const WaterMonitoringDashboard: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col lg:flex-row h-screen">
+      {/* Mobile Header */}
+      <div className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">AIGIS</h1>
+          <p className="text-sm text-muted-foreground">Water Monitoring</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setDarkMode(!darkMode)}
+          >
+            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setMobileMenuOpen?.(true)}
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin">
-        <div className="p-6 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
+        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+          {/* Desktop Header */}
+          <div className="hidden lg:flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground">AIGIS Water Monitoring</h1>
               {/* <p className="text-muted-foreground">Real-time water quality monitoring and analysis</p> */}
@@ -888,7 +915,7 @@ const WaterMonitoringDashboard: React.FC = () => {
               <CardDescription>Geographic distribution of water monitoring points</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-96 w-full rounded-lg overflow-hidden">
+              <div className="h-64 sm:h-80 lg:h-96 w-full rounded-lg overflow-hidden">
                 <MapContainer
                   center={[10.8505, 76.2711]}
                   zoom={7}
@@ -926,14 +953,49 @@ const WaterMonitoringDashboard: React.FC = () => {
       </div>
 
       {/* Right Sidebar - Input Form */}
-      <InputSidebar
-        inputData={inputData}
-        onInputChange={handleInputChange}
-        onSubmit={handleSubmit}
-        onCsvUpload={handleCsvUpload}
-        onPredictionSubmit={handlePredictionSubmit}
-        className="w-[35%] border-l border-border bg-card/50 overflow-y-auto scrollbar-thin"
-      />
+      <div className="hidden lg:block lg:w-[35%]">
+        <InputSidebar
+          inputData={inputData}
+          onInputChange={handleInputChange}
+          onSubmit={handleSubmit}
+          onCsvUpload={handleCsvUpload}
+          onPredictionSubmit={handlePredictionSubmit}
+          className="h-full border-l border-border bg-card/50 overflow-y-auto scrollbar-thin"
+        />
+      </div>
+
+      {/* Mobile Bottom Sidebar */}
+      <div className="lg:hidden">
+        <div className="border-t border-border bg-card/50">
+          <button
+            onClick={() => setMobileInputVisible(!mobileInputVisible)}
+            className="w-full p-3 text-left flex items-center justify-between hover:bg-muted/50 transition-colors"
+          >
+            <div>
+              <h3 className="font-medium text-sm">Add Data</h3>
+              <p className="text-xs text-muted-foreground">Enter new monitoring data</p>
+            </div>
+            <div className={`transform transition-transform ${mobileInputVisible ? 'rotate-180' : ''}`}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+          {mobileInputVisible && (
+            <div className="max-h-[50vh] overflow-y-auto">
+              <InputSidebar
+                inputData={inputData}
+                onInputChange={handleInputChange}
+                onSubmit={handleSubmit}
+                onCsvUpload={handleCsvUpload}
+                onPredictionSubmit={handlePredictionSubmit}
+                className="border-0"
+                isMobile={true}
+              />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

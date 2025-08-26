@@ -70,6 +70,22 @@ interface DatasetsPageProps {
 export const DatasetsPage: React.FC<DatasetsPageProps> = ({ className }) => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [searchQuery, setSearchQuery] = useState('')
+  const [isMobile, setIsMobile] = useState(false)
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  React.useEffect(() => {
+    if (isMobile && viewMode !== 'list') {
+      setViewMode('list')
+    }
+  }, [isMobile, viewMode])
 
   const filteredDatasets = datasets.filter(dataset =>
     dataset.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -98,56 +114,61 @@ export const DatasetsPage: React.FC<DatasetsPageProps> = ({ className }) => {
       {/* Header */}
       <div className="space-y-4">
         <div>
-          <h1 className="text-3xl font-bold">Datasets</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Datasets</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Access and download the datasets used in our water monitoring system
           </p>
         </div>
 
         {/* Search and View Controls */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative flex-1 max-w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search datasets..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-10 pr-4 py-2 border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
             />
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="w-4 h-4 mr-2" />
-              List
-            </Button>
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid3X3 className="w-4 h-4 mr-2" />
-              Grid
-            </Button>
-          </div>
+          {/* Only show toggle on tablet and up */}
+          {!isMobile && (
+            <div className="flex items-center justify-center sm:justify-end gap-2">
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="flex-1 sm:flex-none"
+              >
+                <List className="w-4 h-4 mr-2" />
+                List
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="flex-1 sm:flex-none"
+              >
+                <Grid3X3 className="w-4 h-4 mr-2" />
+                Grid
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Datasets */}
       <div className={cn(
         viewMode === 'grid' 
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-          : "space-y-4"
+          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" 
+          : "space-y-3 sm:space-y-4"
       )}>
         {filteredDatasets.map((dataset) => (
           <Card key={dataset.id} className={cn(
             "transition-all duration-200 hover:shadow-lg",
-            viewMode === 'list' && "flex flex-row overflow-hidden"
+            viewMode === 'list' && "flex flex-col sm:flex-row overflow-hidden"
           )}>
             {viewMode === 'grid' ? (
               // Grid View
@@ -169,30 +190,30 @@ export const DatasetsPage: React.FC<DatasetsPageProps> = ({ className }) => {
                     }}
                   />
                 </div>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{dataset.title}</CardTitle>
-                    <Badge variant="secondary">{dataset.category}</Badge>
+                <CardHeader className="pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                    <CardTitle className="text-base sm:text-lg">{dataset.title}</CardTitle>
+                    <Badge variant="secondary" className="self-start">{dataset.category}</Badge>
                   </div>
-                  <CardDescription className="text-sm">{dataset.description}</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">{dataset.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4">
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Fields</h4>
+                    <h4 className="text-xs sm:text-sm font-medium mb-2">Fields</h4>
                     <div className="flex flex-wrap gap-1">
                       {dataset.fields.slice(0, 6).map((field, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge key={index} variant="outline" className="text-[10px] sm:text-xs">
                           {field}
                         </Badge>
                       ))}
                       {dataset.fields.length > 6 && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-[10px] sm:text-xs">
                           +{dataset.fields.length - 6} more
                         </Badge>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs sm:text-sm text-muted-foreground">
                     <span>{dataset.format} • {dataset.size}</span>
                     <span>Updated {dataset.lastUpdated}</span>
                   </div>
@@ -208,7 +229,7 @@ export const DatasetsPage: React.FC<DatasetsPageProps> = ({ className }) => {
             ) : (
               // List View
               <>
-                <div className="w-48 flex-shrink-0 bg-muted overflow-hidden relative">
+                <div className="w-full h-48 sm:w-48 sm:h-auto sm:flex-shrink-0 bg-muted overflow-hidden relative">
                   <Image
                     src={dataset.image}
                     alt={dataset.title}
@@ -225,31 +246,32 @@ export const DatasetsPage: React.FC<DatasetsPageProps> = ({ className }) => {
                   />
                 </div>
                 <div className="flex-1 flex flex-col">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <CardTitle className="text-xl">{dataset.title}</CardTitle>
-                      <Badge variant="secondary">{dataset.category}</Badge>
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                      <CardTitle className="text-lg sm:text-xl">{dataset.title}</CardTitle>
+                      <Badge variant="secondary" className="self-start">{dataset.category}</Badge>
                     </div>
-                    <CardDescription>{dataset.description}</CardDescription>
+                    <CardDescription className="text-sm">{dataset.description}</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex-1 space-y-4">
+                  <CardContent className="flex-1 space-y-3 sm:space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium mb-2">Available Fields</h4>
+                      <h4 className="text-xs sm:text-sm font-medium mb-2">Available Fields</h4>
                       <div className="flex flex-wrap gap-1">
                         {dataset.fields.map((field, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
+                          <Badge key={index} variant="outline" className="text-[10px] sm:text-xs">
                             {field}
                           </Badge>
                         ))}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-muted-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="text-xs sm:text-sm text-muted-foreground">
                         {dataset.format} • {dataset.size} • Updated {dataset.lastUpdated}
                       </div>
                       <Button
                         onClick={() => handleDownload(dataset)}
                         size="sm"
+                        className="w-full sm:w-auto"
                       >
                         <Download className="w-4 h-4 mr-2" />
                         Download
