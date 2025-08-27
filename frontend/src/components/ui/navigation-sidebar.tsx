@@ -65,7 +65,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     <>
       {/* Mobile Backdrop */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setMobileMenuOpen?.(false)} />
+        <div className="fixed inset-0 bg-black/50 z-[9998] lg:hidden" onClick={() => setMobileMenuOpen?.(false)} />
       )}
       
       {/* Desktop Sidebar */}
@@ -146,8 +146,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       
       {/* Mobile Sidebar */}
       <div
+        id="navigation-sidebar"
         className={cn(
-          "lg:hidden fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out bg-card border-r border-border",
+          "lg:hidden fixed inset-y-0 left-0 z-[9999] w-64 transform transition-transform duration-300 ease-in-out bg-card border-r border-border",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

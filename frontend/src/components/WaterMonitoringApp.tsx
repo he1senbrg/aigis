@@ -1,9 +1,9 @@
 'use client'
 
-import { DatasetsPage } from '@/components/DatasetsPage'
 import { Button } from '@/components/ui/button'
 import { NavigationSidebar } from '@/components/ui/navigation-sidebar'
-import WaterMonitoringDashboard from '@/components/WaterMonitoringDashboard'
+import { WaterMonitoringDashboard } from '@/features/dashboard'
+import { DatasetsPage } from '@/features/datasets'
 import { Menu } from 'lucide-react'
 import React, { useState } from 'react'
 
