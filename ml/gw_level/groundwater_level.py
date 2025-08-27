@@ -6,7 +6,7 @@ from xgboost import XGBRegressor
 import joblib
 import optuna
 #Loading the dataset and preprocessing it
-df = pd.read_csv("/kaggle/input/groundwater/gwr.csv")
+df = pd.read_csv("datasets/gwr.csv")
 df = df.dropna(axis=1, how='all')
 df = df.dropna(subset=[
     'Annual Domestic and Industry Draft',
@@ -48,11 +48,11 @@ def objective(trial):
         'max_depth': trial.suggest_int('max_depth', 3, 12),
         'subsample': trial.suggest_float('subsample', 0.5, 1.0),
         'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
-        'reg_alpha': trial.suggest_loguniform('reg_alpha', 1e-8, 10.0),
-        'reg_lambda': trial.suggest_loguniform('reg_lambda', 1e-8, 10.0)
+        'reg_alpha': trial.suggest_float('reg_alpha', 1e-8, 10.0, log=True),
+        'reg_lambda': trial.suggest_float('reg_lambda', 1e-8, 10.0, log=True)
     }
-    model = XGBRegressor(**params, random_state=42, objective='reg:squarederror')
-    model.fit(X_train, y_train, eval_set=[(X_test, y_test)], early_stopping_rounds=50, verbose=False)
+    model = XGBRegressor(**params, random_state=42, objective='reg:squarederror', early_stopping_rounds=50)
+    model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=False)
     preds = model.predict(X_test)
     rmse = np.sqrt(mean_squared_error(y_test, preds))
     return rmse
@@ -97,3 +97,7 @@ sample_input = [278.49, 607.78, 886.27, 6415.13, 0.073, 6089.62]
 predicted_stage, category = predict_stage(sample_input)
 print(f"\nPredicted Stage of Groundwater Development (%): {predicted_stage:.2f}")
 print(f"Classification: {category}")
+
+# Save trained model
+
+joblib.dump(model, "gw_level.pkl")

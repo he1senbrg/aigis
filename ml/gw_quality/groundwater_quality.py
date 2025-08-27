@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,8 +8,9 @@ from sklearn.model_selection import (
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.inspection import permutation_importance
+import joblib
 
-path = "/kaggle/input/ground-water/gwq.csv"  
+path = "datasets/gwq.csv"  
 df = pd.read_csv(path, low_memory=False)
 
 features = ["pH","EC","TDS","TH","Ca","Mg","Na","K","Cl","SO4","NO3","F","U(ppb)"]
@@ -248,3 +247,5 @@ def explain_prediction(row):
         "Contributions": sorted_contribs
     }
 
+joblib.dump(best_rf, "gw_quality.pkl")
+print("Model saved as rf_potability_model.pkl")
