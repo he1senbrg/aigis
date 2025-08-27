@@ -31,6 +31,22 @@ export interface WaterInputData {
   stageGroundwaterDevelopment: string
 }
 
+export interface QualityAnalysis {
+  potability_score: number
+  rule_based_score: number
+  safety_label: string
+  failed_parameters: Record<string, string>
+  explanation: {
+    "Predicted Score": number
+    "Contributions": Record<string, number>
+  }
+}
+
+export interface LevelAnalysis {
+  predicted_stage: number
+  classification: string
+}
+
 export interface WaterData {
   groundwaterLevel: number;
   ph: number;
@@ -63,6 +79,8 @@ export interface WaterData {
   groundwaterAvailabilityFutureIrrigation: number
   stageGroundwaterDevelopment: number
   timestamp: string
+  qualityAnalysis?: QualityAnalysis
+  levelAnalysis?: LevelAnalysis
 }
 
 export interface CsvRowData {

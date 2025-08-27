@@ -5,7 +5,7 @@ import { analyzeWaterData, predictWaterData } from '@/shared/services'
 import { PredictionInputData, WaterData, WaterInputData } from '@/shared/types'
 import { getLocationCoordinates } from '@/shared/utils'
 import React, { useEffect, useState } from 'react'
-import { createWaterDataFromInput, getInitialInputData, getInitialWaterData } from '../utils/data-helpers'
+import { createWaterDataFromInput, createWaterDataFromServerResponse, getInitialInputData } from '../utils/data-helpers'
 import { generateReport } from '../utils/report-generator'
 import { DashboardHeader } from './DashboardHeader'
 import { InputSidebar } from './InputSidebar'
@@ -36,7 +36,7 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
     document.documentElement.classList.add('dark')
   }, [])
 
-  const [waterData, setWaterData] = useState<WaterData[]>(getInitialWaterData())
+  const [waterData, setWaterData] = useState<WaterData[]>([])
   const [inputData, setInputData] = useState<WaterInputData>(getInitialInputData())
 
   const handleInputChange = (field: keyof WaterInputData, value: string) => {
@@ -64,26 +64,32 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
     }
 
     try {
-      await analyzeWaterData(inputData)
+      console.log('Sending data to server:', inputData)
+      const serverResponse = await analyzeWaterData(inputData)
+      console.log('Received server response:', serverResponse)
       
-      // Add to local state
-      const newData = createWaterDataFromInput(inputData, waterData)
-      setWaterData(prev => [...prev, newData])
+      // Create water data with server analysis results
+      const newData = createWaterDataFromServerResponse(inputData, serverResponse)
+      console.log('Created water data:', newData)
+      console.log('Quality analysis in newData:', newData.qualityAnalysis)
+      console.log('Level analysis in newData:', newData.levelAnalysis)
+      setWaterData([newData])
     } catch (error: unknown) {
+      console.error('Full error details:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       alert('Error analyzing data: ' + errorMessage)
     }
   }
 
   const handlePredictionSubmit = async (addData: WaterInputData, predData: PredictionInputData) => {
-    // First add the existing data
+    // Replace existing data with new data (only one location at a time)
     if (!addData.location) {
       alert('Please fill in at least Location in the existing data')
       return
     }
 
-    const newData = createWaterDataFromInput(addData, waterData)
-    setWaterData(prev => [...prev, newData])
+    const newData = createWaterDataFromInput(addData)
+    setWaterData([newData])
 
     try {
       await predictWaterData(addData, predData)
@@ -94,12 +100,19 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
   }
 
   const handleCsvUpload = (csvData: WaterInputData[]) => {
-    const newWaterData: WaterData[] = csvData.map((row) => 
-      createWaterDataFromInput(row, waterData)
-    )
+    // Only process the first row since we handle one location at a time
+    if (csvData.length === 0) {
+      alert('No data found in CSV')
+      return
+    }
+    
+    if (csvData.length > 1) {
+      alert('Multiple locations detected. Only the first location will be processed since the system handles one location at a time.')
+    }
 
-    setWaterData(prev => [...prev, ...newWaterData])
-    alert(`Successfully imported ${newWaterData.length} records from CSV`)
+    const newWaterData = createWaterDataFromInput(csvData[0])
+    setWaterData([newWaterData])
+    alert('Successfully imported 1 record from CSV')
   }
 
   const handleGenerateReport = () => {
