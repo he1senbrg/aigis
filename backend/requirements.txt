@@ -4,3 +4,5 @@ numpy
 shap
 xgboost
 black
+google-genai
+markdown-pdf

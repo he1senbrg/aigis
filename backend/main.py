@@ -1,8 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import pred_level
 import pred_quality
 import json
+import ai_report
+import os
+
+os.makedirs("static", exist_ok=True)
 
 app = FastAPI()
 
@@ -20,6 +25,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @app.get("/")
 def read_root():
@@ -30,18 +37,18 @@ def read_root():
 def analyze_data(data: dict):
     quality_input = {
         "pH": float(data.get("ph", 0.0) or 0.0),
-        "EC": int(data.get("ec", 0) or 0),
-        "TDS": int(data.get("tds", 0) or 0),
-        "TH": int(data.get("th", 0) or 0),
-        "Ca": int(data.get("ca", 0) or 0),
-        "Mg": int(data.get("mg", 0) or 0),
-        "Na": int(data.get("na", 0) or 0),
-        "K": int(data.get("k", 0) or 0),
-        "Cl": int(data.get("cl", 0) or 0),
-        "SO4": int(data.get("so4", 0) or 0),
-        "NO3": int(data.get("nitrate", 0) or 0),
+        "EC": float(data.get("ec", 0) or 0),
+        "TDS": float(data.get("tds", 0) or 0),
+        "TH": float(data.get("th", 0) or 0),
+        "Ca": float(data.get("ca", 0) or 0),
+        "Mg": float(data.get("mg", 0) or 0),
+        "Na": float(data.get("na", 0) or 0),
+        "K": float(data.get("k", 0) or 0),
+        "Cl": float(data.get("cl", 0) or 0),
+        "SO4": float(data.get("so4", 0) or 0),
+        "NO3": float(data.get("nitrate", 0) or 0),
         "F": float(data.get("fluoride", 0.0) or 0.0),
-        "U(ppb)": int(data.get("uranium", 0) or 0),
+        "U(ppb)": float(data.get("uranium", 0) or 0),
     }
 
     quality_analysis = pred_quality.predict(quality_input)
@@ -64,22 +71,22 @@ def analyze_data(data: dict):
 
 @app.post("/predict")
 def predict_data(data: dict):
-    existing = data.get("existing",{})
+    existing = data.get("existing", {})
 
     quality_existing = {
         "pH": float(existing.get("ph", 0.0) or 0.0),
-        "EC": int(existing.get("ec", 0) or 0),
-        "TDS": int(existing.get("tds", 0) or 0),
-        "TH": int(existing.get("th", 0) or 0),
-        "Ca": int(existing.get("ca", 0) or 0),
-        "Mg": int(existing.get("mg", 0) or 0),
-        "Na": int(existing.get("na", 0) or 0),
-        "K": int(existing.get("k", 0) or 0),
-        "Cl": int(existing.get("cl", 0) or 0),
-        "SO4": int(existing.get("so4", 0) or 0),
-        "NO3": int(existing.get("nitrate", 0) or 0),
+        "EC": float(existing.get("ec", 0) or 0),
+        "TDS": float(existing.get("tds", 0) or 0),
+        "TH": float(existing.get("th", 0) or 0),
+        "Ca": float(existing.get("ca", 0) or 0),
+        "Mg": float(existing.get("mg", 0) or 0),
+        "Na": float(existing.get("na", 0) or 0),
+        "K": float(existing.get("k", 0) or 0),
+        "Cl": float(existing.get("cl", 0) or 0),
+        "SO4": float(existing.get("so4", 0) or 0),
+        "NO3": float(existing.get("nitrate", 0) or 0),
         "F": float(existing.get("fluoride", 0.0) or 0.0),
-        "U(ppb)": int(existing.get("uranium", 0) or 0),
+        "U(ppb)": float(existing.get("uranium", 0) or 0),
     }
 
     level_existing = [
@@ -91,8 +98,8 @@ def predict_data(data: dict):
         float(existing.get("netGroundwaterAvailability", 0.0) or 0.0),
     ]
 
-    for_prediction = data.get("for_prediction",{})
-    
+    for_prediction = data.get("for_prediction", {})
+
     quality_for_prediction = {
         "pH": float(for_prediction.get("ph", 0.0) or 0.0),
         "EC": int(for_prediction.get("ec", 0) or 0),
@@ -109,22 +116,43 @@ def predict_data(data: dict):
         "U(ppb)": int(for_prediction.get("uranium", 0) or 0),
     }
 
-    level_for_prediction_parameters = for_prediction.get("groundwaterParameters",{})
+    level_for_prediction_parameters = for_prediction.get("groundwaterParameters", {})
 
-    level_for_prediction_parameters = {i["type"]: i["value"] for i in level_for_prediction_parameters }
+    level_for_prediction_parameters = {
+        i["type"]: i["value"] for i in level_for_prediction_parameters
+    }
 
     level_for_prediction = [
-        float(level_for_prediction_parameters.get("annualDomesticIndustryDraft", 0.0) or 0.0),
+        float(
+            level_for_prediction_parameters.get("annualDomesticIndustryDraft", 0.0)
+            or 0.0
+        ),
         float(level_for_prediction_parameters.get("annualIrrigationDraft", 0.0) or 0.0),
-        float(level_for_prediction_parameters.get("annualGroundwaterDraftTotal", 0.0) or 0.0),
-        float(level_for_prediction_parameters.get("annualReplenishableGroundwaterResources", 0.0) or 0.0),
-        float(level_for_prediction_parameters.get("naturalDischargeNonMonsoon", 0.0) or 0.0),
-        float(level_for_prediction_parameters.get("netGroundwaterAvailability", 0.0) or 0.0),
+        float(
+            level_for_prediction_parameters.get("annualGroundwaterDraftTotal", 0.0)
+            or 0.0
+        ),
+        float(
+            level_for_prediction_parameters.get(
+                "annualReplenishableGroundwaterResources", 0.0
+            )
+            or 0.0
+        ),
+        float(
+            level_for_prediction_parameters.get("naturalDischargeNonMonsoon", 0.0)
+            or 0.0
+        ),
+        float(
+            level_for_prediction_parameters.get("netGroundwaterAvailability", 0.0)
+            or 0.0
+        ),
     ]
 
     quality_input = quality_existing
 
-    level_input = [level_existing[i] + level_for_prediction[i] for i in range(len(level_existing))]
+    level_input = [
+        level_existing[i] + level_for_prediction[i] for i in range(len(level_existing))
+    ]
 
     quality_analysis = pred_quality.predict(quality_input)
     level_analysis = pred_level.predict(level_input)
@@ -132,3 +160,10 @@ def predict_data(data: dict):
     retJSON = {"quality_analysis": quality_analysis, "level_analysis": level_analysis}
     print("Analysis result:", json.dumps(retJSON, indent=2))
     return json.dumps(retJSON)
+
+
+@app.post("/gen_report")
+def generate_report(data: dict):
+    pdf_url = ai_report.generate(data)
+
+    return pdf_url

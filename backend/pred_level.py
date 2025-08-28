@@ -1,11 +1,9 @@
 import joblib
 import json
 
-# Load the model
 model = joblib.load("models/gw_level.pkl")
 
 
-# Same classify function
 def classify_stage(stage):
     if stage <= 70:
         return "Safe"
@@ -17,7 +15,6 @@ def classify_stage(stage):
         return "Over-Exploited"
 
 
-# Prediction function
 def predict_stage(sample):
     pred_stage = model.predict([sample])[0]
     category = classify_stage(pred_stage)
