@@ -88,11 +88,11 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
       return
     }
 
-    const newData = createWaterDataFromInput(addData)
-    setWaterData([newData])
-
     try {
-      await predictWaterData(addData, predData)
+      const serverResponse = await predictWaterData(addData, predData)
+      // Create water data with server analysis results
+      const newData = createWaterDataFromServerResponse(addData, serverResponse)
+      setWaterData([newData])
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       alert(`Prediction request failed: ${errorMessage}`)
@@ -119,6 +119,13 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
     generateReport(waterData, reportLanguage)
   }
 
+  const handleClear = () => {
+    setWaterData([])
+    setInputData(getInitialInputData())
+    setMapCenter(DEFAULT_MAP_CENTER)
+    setMarkerPosition(null)
+  }
+
   return (
     <div className="flex flex-col lg:flex-row h-screen">
       {/* Mobile Header */}
@@ -130,6 +137,8 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
         onGenerateReport={handleGenerateReport}
         setMobileMenuOpen={setMobileMenuOpen}
         isMobile={true}
+        hasData={waterData.length > 0}
+        onClear={handleClear}
       />
 
       {/* Main Content Area */}
@@ -142,20 +151,30 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
             reportLanguage={reportLanguage}
             setReportLanguage={setReportLanguage}
             onGenerateReport={handleGenerateReport}
+            hasData={waterData.length > 0}
+            onClear={handleClear}
           />
 
-          {/* GW Resource Level Section */}
-          <ResourceLevelSection waterData={waterData} />
+          {waterData.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-[60vh]">
+              <div className="text-2xl font-semibold text-center text-muted-foreground">Enter data to begin</div>
+            </div>
+          ) : (
+            <>
+              {/* GW Resource Level Section */}
+              <ResourceLevelSection waterData={waterData} />
 
-          {/* GW Quality Section */}
-          <WaterQualitySection waterData={waterData} />
+              {/* GW Quality Section */}
+              <WaterQualitySection waterData={waterData} />
 
-          {/* Map */}
-          <MapSection
-            mapCenter={mapCenter}
-            markerPosition={markerPosition}
-            inputData={inputData}
-          />
+              {/* Map */}
+              <MapSection
+                mapCenter={mapCenter}
+                markerPosition={markerPosition}
+                inputData={inputData}
+              />
+            </>
+          )}
         </div>
       </div>
 

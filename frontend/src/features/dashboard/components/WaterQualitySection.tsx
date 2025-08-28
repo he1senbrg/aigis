@@ -309,17 +309,25 @@ export const WaterQualitySection: React.FC<WaterQualitySectionProps> = ({ waterD
                 </TableBody>
               </Table>
             </div>
-            {potability.failedThresholds.length > 0 && (
-              <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">Failed WHO/BIS Thresholds:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {potability.failedThresholds.map((threshold: any, index: number) => (
-                    <Badge key={index} variant="destructive" className="text-xs">
-                      {typeof threshold === 'string' ? threshold : `${threshold.parameter}: ${threshold.value}`}
-                    </Badge>
-                  ))}
+            {potability.failedThresholds.length > 0 &&
+              // Hide if the only entry is Status: All within limits
+              !(
+                potability.failedThresholds.length === 1 &&
+                ((typeof potability.failedThresholds[0] === 'string' && potability.failedThresholds[0].includes('All within limits')) ||
+                 (typeof potability.failedThresholds[0] === 'object' && potability.failedThresholds[0].parameter === 'Status'))
+              ) && (
+                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">Failed WHO/BIS Thresholds:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {potability.failedThresholds.map((threshold: any, index: number) => (
+                      (typeof threshold === 'object' && threshold.parameter === 'Status') ? null : (
+                        <Badge key={index} variant="destructive" className="text-xs">
+                          {typeof threshold === 'string' ? threshold : `${threshold.parameter}: ${threshold.value}`}
+                        </Badge>
+                      )
+                    ))}
+                  </div>
                 </div>
-              </div>
             )}
           </CardContent>
         </Card>
