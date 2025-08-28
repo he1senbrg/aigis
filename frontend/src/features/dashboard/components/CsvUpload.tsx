@@ -6,6 +6,7 @@ import { WaterInputData } from '@/shared/types'
 import { parseCsvData } from '@/shared/utils'
 import { FileText, Upload, X } from 'lucide-react'
 import React, { useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 interface CsvUploadProps {
   onCsvUpload?: (data: WaterInputData[]) => void
@@ -16,12 +17,13 @@ export const CsvUpload: React.FC<CsvUploadProps> = ({ onCsvUpload }) => {
   const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
     if (!file.name.endsWith('.csv')) {
-      alert('Please upload a CSV file')
+      toast("Please upload a CSV file.")
       return
     }
 
@@ -38,7 +40,7 @@ export const CsvUpload: React.FC<CsvUploadProps> = ({ onCsvUpload }) => {
       
     } catch (error) {
       console.error('Error parsing CSV:', error)
-      alert('Error parsing CSV file. Please check the file format.')
+      toast("Could not parse CSV file.")
     } finally {
       setIsProcessing(false)
     }
@@ -101,13 +103,16 @@ export const CsvUpload: React.FC<CsvUploadProps> = ({ onCsvUpload }) => {
               Processing CSV file...
             </div>
           )}
-          <div className="text-xs text-muted-foreground">
-            <p className="font-medium mb-1">Expected CSV headers:</p>
+          <div className="text-xs text-muted-foreground space-y-2">
+            <p className="font-medium">Expected CSV headers:</p>
+            <div className="bg-muted/50 p-2 rounded text-[10px] leading-relaxed break-all">
+              <p className="mb-1">
+                 location, district, population, groundwater level, ph, ec, tds, th, ca, mg, na, k, cl, so4, nitrate, fluoride, uranium, arsenic, temperature, well depth, 
+                 annualdomesticindustrydraft, annualirrigationdraft, annualgroundwaterdrafttotal, annualreplenishablegroundwaterresources, naturaldischargenonmonsoon, netgroundwateravailability, projecteddemanddomesticindustrial2025, groundwateravailabilityfutureirrigation, stagegroundwaterdevelopment
+              </p>
+            </div>
             <p className="text-[10px] leading-tight">
-              location, latitude, longitude, district, population, groundwater level, ph, ec, tds, th, ca, mg, na, k, cl, so4, nitrate, fluoride, uranium, arsenic, temperature, well depth
-            </p>
-            <p className="text-[10px] leading-tight mt-1">
-              <span className="font-medium">Additional chemical symbols supported:</span> NO₃ (nitrate), F (fluoride), U (uranium), SO₄ (sulfate)
+              <span className="font-medium">Chemical symbols also supported:</span> NO₃ (nitrate), F (fluoride), U (uranium), SO₄ (sulfate)
             </p>
           </div>
         </div>

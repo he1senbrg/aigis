@@ -8,7 +8,8 @@ interface DashboardHeaderProps {
   setDarkMode: (darkMode: boolean) => void
   reportLanguage: string
   setReportLanguage: (language: string) => void
-  onGenerateReport: () => void
+  onGenerateServerReport?: () => void
+  hasPredictionData?: boolean
   setMobileMenuOpen?: (open: boolean) => void
   isMobile?: boolean
   hasData: boolean // New prop to indicate if data is present
@@ -20,7 +21,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   setDarkMode,
   reportLanguage,
   setReportLanguage,
-  onGenerateReport,
+  onGenerateServerReport,
+  hasPredictionData = false,
   setMobileMenuOpen,
   isMobile = false,
   hasData,
@@ -112,9 +114,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={onGenerateReport} variant="outline" className="text-sm">
-              Generate Report
-            </Button>
+            <div className="flex gap-2">
+              {onGenerateServerReport && hasPredictionData && (
+                <Button onClick={onGenerateServerReport} variant="default" className="text-sm">
+                  Generate Report
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       )}

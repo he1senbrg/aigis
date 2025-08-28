@@ -65,3 +65,32 @@ export const predictWaterData = async (existing: WaterInputData, prediction: Pre
     throw new Error('Server returned invalid JSON response')
   }
 }
+
+export const generateReport = async (afterPred: ServerAnalysisResponse, language: string): Promise<string> => {
+  const response = await fetch(`${API_BASE_URL}/gen_report`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      after_pred: afterPred,
+      language: language
+    })
+  })
+  
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Server error response:', errorText)
+    throw new Error(errorText || 'Failed to generate report')
+  }
+  
+  const responseData = await response.text()
+  console.log('Report generation response:', responseData)
+  
+  // Server returns a relative path like "static/report_620968327984.pdf"
+  // We need to construct the full URL
+  const relativePath = responseData.replace(/"/g, '') // Remove quotes if present
+  const fullUrl = `${API_BASE_URL}/${relativePath}`
+  
+  return fullUrl
+}

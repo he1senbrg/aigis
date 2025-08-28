@@ -8,5 +8,3 @@ export { ResourceLevelSection } from './components/ResourceLevelSection'
 export { default as WaterMonitoringDashboard } from './components/WaterMonitoringDashboard'
 export { WaterQualitySection } from './components/WaterQualitySection'
 export * from './utils/data-helpers'
-export * from './utils/report-generator'
-

@@ -1,12 +1,14 @@
 'use client'
 
+import { AlertDialog } from '@/components/ui/alert-dialog'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DEFAULT_MAP_CENTER, FALLBACK_INDIA_CENTER } from '@/shared/constants'
-import { analyzeWaterData, predictWaterData } from '@/shared/services'
+import { analyzeWaterData, generateReport as generateServerReport, predictWaterData, ServerAnalysisResponse } from '@/shared/services'
 import { PredictionInputData, WaterData, WaterInputData } from '@/shared/types'
 import { getLocationCoordinates } from '@/shared/utils'
 import React, { useEffect, useState } from 'react'
-import { createWaterDataFromInput, createWaterDataFromServerResponse, getInitialInputData } from '../utils/data-helpers'
-import { generateReport } from '../utils/report-generator'
+import { toast } from 'sonner'
+import { createWaterDataFromServerResponse, getInitialInputData } from '../utils/data-helpers'
 import { DashboardHeader } from './DashboardHeader'
 import { InputSidebar } from './InputSidebar'
 import { MapSection } from './MapSection'
@@ -23,6 +25,20 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
   const [mobileInputVisible, setMobileInputVisible] = useState(false)
   const [mapCenter, setMapCenter] = useState<[number, number]>(DEFAULT_MAP_CENTER)
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null)
+  const [lastPredictionResponse, setLastPredictionResponse] = useState<ServerAnalysisResponse | null>(null)
+  const [reportGenerating, setReportGenerating] = useState(false)
+  const [alertDialog, setAlertDialog] = useState<{
+    open: boolean
+    title: string
+    description: string
+    type: 'info' | 'warning' | 'error' | 'success'
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    type: 'info'
+  })
+  
   
   useEffect(() => {
     if (darkMode) {
@@ -39,6 +55,15 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
   const [waterData, setWaterData] = useState<WaterData[]>([])
   const [inputData, setInputData] = useState<WaterInputData>(getInitialInputData())
 
+  const showAlertDialog = (title: string, description: string, type: 'info' | 'warning' | 'error' | 'success' = 'info') => {
+    setAlertDialog({
+      open: true,
+      title,
+      description,
+      type
+    })
+  }
+
   const handleInputChange = (field: keyof WaterInputData, value: string) => {
     setInputData(prev => ({ ...prev, [field]: value }))
   }
@@ -46,7 +71,7 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!inputData.location) {
-      alert('Please fill in Location')
+      showAlertDialog('Missing Information', 'Please fill in Location', 'warning')
       return
     }
 
@@ -76,47 +101,69 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
       setWaterData([newData])
     } catch (error: unknown) {
       console.error('Full error details:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      alert('Error analyzing data: ' + errorMessage)
+    toast('Analysis failed. Please try again.')
     }
   }
 
   const handlePredictionSubmit = async (addData: WaterInputData, predData: PredictionInputData) => {
     // Replace existing data with new data (only one location at a time)
     if (!addData.location) {
-      alert('Please fill in at least Location in the existing data')
+      showAlertDialog('Missing Information', 'Please fill in at least Location in the existing data', 'warning')
       return
     }
 
     try {
       const serverResponse = await predictWaterData(addData, predData)
+      // Store the prediction response for report generation
+      setLastPredictionResponse(serverResponse)
       // Create water data with server analysis results
       const newData = createWaterDataFromServerResponse(addData, serverResponse)
       setWaterData([newData])
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      alert(`Prediction request failed: ${errorMessage}`)
+  } catch {
+  toast('Prediction failed. Please try again.')
     }
   }
 
   const handleCsvUpload = (csvData: WaterInputData[]) => {
     // Only process the first row since we handle one location at a time
     if (csvData.length === 0) {
-      alert('No data found in CSV')
+  toast('No data found in CSV.')
       return
     }
     
     if (csvData.length > 1) {
-      alert('Multiple locations detected. Only the first location will be processed since the system handles one location at a time.')
+  toast('Only the first location in the CSV will be used.')
     }
 
-    const newWaterData = createWaterDataFromInput(csvData[0])
-    setWaterData([newWaterData])
-    alert('Successfully imported 1 record from CSV')
+    // Populate the input form fields with CSV data
+    setInputData(csvData[0])
+    
+    // On mobile, show the input form so user can see the populated data
+    setMobileInputVisible(true)
+    
+  toast('CSV loaded into form fields.')
   }
 
-  const handleGenerateReport = () => {
-    generateReport(waterData, reportLanguage)
+  const handleGenerateServerReport = async () => {
+    if (!lastPredictionResponse) {
+      showAlertDialog('No Prediction Data', 'No prediction data available. Please run a prediction first.', 'warning')
+      return
+    }
+
+    try {
+      setReportGenerating(true)
+      const pdfLink = await generateServerReport(lastPredictionResponse, reportLanguage)
+      
+      // Open PDF in new tab
+      window.open(pdfLink, '_blank')
+      
+      // Auto-close dialog after successful generation
+      setReportGenerating(false)
+      
+    } catch {
+  toast('Failed to generate report.')
+      setReportGenerating(false)
+    }
   }
 
   const handleClear = () => {
@@ -134,7 +181,8 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
         setDarkMode={setDarkMode}
         reportLanguage={reportLanguage}
         setReportLanguage={setReportLanguage}
-        onGenerateReport={handleGenerateReport}
+        onGenerateServerReport={handleGenerateServerReport}
+        hasPredictionData={lastPredictionResponse !== null}
         setMobileMenuOpen={setMobileMenuOpen}
         isMobile={true}
         hasData={waterData.length > 0}
@@ -150,7 +198,8 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
             setDarkMode={setDarkMode}
             reportLanguage={reportLanguage}
             setReportLanguage={setReportLanguage}
-            onGenerateReport={handleGenerateReport}
+            onGenerateServerReport={handleGenerateServerReport}
+            hasPredictionData={lastPredictionResponse !== null}
             hasData={waterData.length > 0}
             onClear={handleClear}
           />
@@ -222,6 +271,33 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
           )}
         </div>
       </div>
+
+      {/* Report Generation Dialog */}
+      {reportGenerating && (
+        <Dialog open={reportGenerating} onOpenChange={setReportGenerating}>
+          <DialogContent>
+            <DialogClose onClose={() => setReportGenerating(false)} />
+            <DialogHeader>
+              <DialogTitle>Generating Report</DialogTitle>
+              <DialogDescription>
+                Your report is being generated and will open in a new tab shortly. You can close this dialog and continue working.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Alert Dialog */}
+      <AlertDialog
+        open={alertDialog.open}
+        onOpenChange={(open) => setAlertDialog(prev => ({ ...prev, open }))}
+        title={alertDialog.title}
+        description={alertDialog.description}
+        type={alertDialog.type}
+      />
     </div>
   )
 }
