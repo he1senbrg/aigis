@@ -101,7 +101,12 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
       setWaterData([newData])
     } catch (error: unknown) {
       console.error('Full error details:', error)
-    toast('Analysis failed. Please try again.')
+      toast('Analysis failed. Please try again.', {
+        action: {
+          label: "✕",
+          onClick: () => {},
+        },
+      })
     }
   }
 
@@ -120,19 +125,34 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
       const newData = createWaterDataFromServerResponse(addData, serverResponse)
       setWaterData([newData])
   } catch {
-  toast('Prediction failed. Please try again.')
+    toast('Prediction failed. Please try again.', {
+      action: {
+        label: "✕",
+        onClick: () => {},
+      },
+    })
     }
   }
 
   const handleCsvUpload = (csvData: WaterInputData[]) => {
     // Only process the first row since we handle one location at a time
     if (csvData.length === 0) {
-  toast('No data found in CSV.')
+      toast('No data found in CSV.', {
+        action: {
+          label: "✕",
+          onClick: () => {},
+        },
+      })
       return
     }
     
     if (csvData.length > 1) {
-  toast('Only the first location in the CSV will be used.')
+      toast('Only the first location in the CSV will be used.', {
+        action: {
+          label: "✕",
+          onClick: () => {},
+        },
+      })
     }
 
     // Populate the input form fields with CSV data
@@ -141,7 +161,12 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
     // On mobile, show the input form so user can see the populated data
     setMobileInputVisible(true)
     
-  toast('CSV loaded into form fields.')
+    toast('CSV loaded into form fields.', {
+      action: {
+        label: "✕",
+        onClick: () => {},
+      },
+    })
   }
 
   const handleGenerateServerReport = async () => {
@@ -161,7 +186,12 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
       setReportGenerating(false)
       
     } catch {
-  toast('Failed to generate report.')
+      toast('Failed to generate report.', {
+        action: {
+          label: "✕",
+          onClick: () => {},
+        },
+      })
       setReportGenerating(false)
     }
   }

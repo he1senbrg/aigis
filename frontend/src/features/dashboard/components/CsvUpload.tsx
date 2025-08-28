@@ -23,7 +23,12 @@ export const CsvUpload: React.FC<CsvUploadProps> = ({ onCsvUpload }) => {
     if (!file) return
 
     if (!file.name.endsWith('.csv')) {
-      toast("Please upload a CSV file.")
+      toast("Please upload a CSV file.", {
+        action: {
+          label: "✕",
+          onClick: () => {},
+        },
+      })
       return
     }
 
@@ -40,7 +45,12 @@ export const CsvUpload: React.FC<CsvUploadProps> = ({ onCsvUpload }) => {
       
     } catch (error) {
       console.error('Error parsing CSV:', error)
-      toast("Could not parse CSV file.")
+      toast("Could not parse CSV file.", {
+        action: {
+          label: "✕",
+          onClick: () => {},
+        },
+      })
     } finally {
       setIsProcessing(false)
     }
