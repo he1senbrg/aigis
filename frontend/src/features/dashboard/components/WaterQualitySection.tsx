@@ -319,7 +319,7 @@ export const WaterQualitySection: React.FC<WaterQualitySectionProps> = ({ waterD
                 <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                   <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">Failed WHO/BIS Thresholds:</h4>
                   <div className="flex flex-wrap gap-2">
-                    {potability.failedThresholds.map((threshold: any, index: number) => (
+                    {potability.failedThresholds.map((threshold: string | { parameter: string; value: string }, index: number) => (
                       (typeof threshold === 'object' && threshold.parameter === 'Status') ? null : (
                         <Badge key={index} variant="destructive" className="text-xs">
                           {typeof threshold === 'string' ? threshold : `${threshold.parameter}: ${threshold.value}`}

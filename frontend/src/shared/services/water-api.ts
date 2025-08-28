@@ -5,7 +5,6 @@ const API_BASE_URL = 'http://127.0.0.1:8000'
 export interface ServerAnalysisResponse {
   quality_analysis: string
   level_analysis: string
-  [key: string]: any
 }
 
 export const analyzeWaterData = async (data: WaterInputData): Promise<ServerAnalysisResponse> => {
