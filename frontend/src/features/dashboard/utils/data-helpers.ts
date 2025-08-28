@@ -1,5 +1,5 @@
-import { LevelAnalysis, QualityAnalysis, WaterData, WaterInputData } from '@/shared/types'
 import { ServerAnalysisResponse } from '@/shared/services'
+import { LevelAnalysis, QualityAnalysis, WaterData, WaterInputData } from '@/shared/types'
 
 export const createWaterDataFromServerResponse = (inputData: WaterInputData, serverResponse: ServerAnalysisResponse): WaterData => {
   // Parse the quality and level analysis from server response
