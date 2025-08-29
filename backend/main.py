@@ -7,18 +7,18 @@ import json
 import ai_report
 import os
 import shutil
+from contextlib import asynccontextmanager
 
-dir_path = "static"
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    dir_path = "static"
+    shutil.rmtree(dir_path, ignore_errors=True)
+    os.makedirs(dir_path, exist_ok=True)
+    print(f"Reset directory: {dir_path}")
 
-if os.path.exists(dir_path) and os.path.isdir(dir_path):
-    shutil.rmtree(dir_path)
-    print(f"Removed directory: {dir_path}")
-else:
-    print(f"Directory not found: {dir_path}")
+    yield
 
-os.makedirs("static", exist_ok=True)
-
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost",

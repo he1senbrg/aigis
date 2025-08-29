@@ -6,3 +6,5 @@ xgboost
 black
 google-genai
 markdown-pdf
+uvicorn
+gunicorn
