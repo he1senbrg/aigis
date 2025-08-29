@@ -19,10 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: cd to backend
-        run: |
-          cd backend
-
       - name: Set up Python version
         uses: actions/setup-python@v5
         with:
