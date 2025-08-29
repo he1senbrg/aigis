@@ -6,6 +6,15 @@ import pred_quality
 import json
 import ai_report
 import os
+import shutil
+
+dir_path = "static"
+
+if os.path.exists(dir_path) and os.path.isdir(dir_path):
+    shutil.rmtree(dir_path)
+    print(f"Removed directory: {dir_path}")
+else:
+    print(f"Directory not found: {dir_path}")
 
 os.makedirs("static", exist_ok=True)
 
