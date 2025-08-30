@@ -1,6 +1,6 @@
 import { PredictionInputData, WaterInputData } from '../types'
 
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = 'https://aigis-backend.agreeablestone-f005a4ec.southindia.azurecontainerapps.io'
 
 export interface ServerAnalysisResponse {
   quality_analysis: string

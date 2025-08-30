@@ -25,8 +25,6 @@ def generate(data):
 
         Summarize the learned trends and magnitudes of release, extraction, or usage patterns from the data.
 
-
-
         2. Impact on Groundwater
 
         Explain the effects of these levels on both groundwater quality and groundwater availability/quantity.
@@ -35,7 +33,8 @@ def generate(data):
 
         date info: {datetime.datetime.now()}
 
-        Strictly follow markdown format, the response should feel like a chart response bt rather a report
+        IMPORTANT: Start your response with a level 1 heading (# Title) and ensure proper markdown heading hierarchy (# for level 1, ## for level 2, etc.)
+        Strictly follow markdown format, the response should feel like a report with proper headings.
     """
 
     response = client.models.generate_content(
@@ -44,17 +43,25 @@ def generate(data):
     )
     print(response.text)
 
-    pdf = MarkdownPdf()
+    markdown_content = str(response.text)
 
-    pdf.add_section(Section(response.text if response.text else ""))
+    try:
+        pdf = MarkdownPdf()
+        pdf.add_section(Section(markdown_content))
 
-    rand_flag = True
-    rnd = 0
-    while rand_flag:
-        rnd = random.randint(1, 1000000000000)
-        if f"report_{rnd}" not in os.listdir("static"):
-            break
+        rand_flag = True
+        rnd = 0
+        while rand_flag:
+            rnd = random.randint(1, 1000000000000)
+            if f"report_{rnd}" not in os.listdir("static"):
+                break
 
-    pdf.save(f"static/report_{rnd}.pdf")
-
-    return f"static/report_{rnd}.pdf"
+        pdf.save(f"static/report_{rnd}.pdf")
+        return f"static/report_{rnd}.pdf"
+    
+    except Exception as e:
+        print(f"Error generating PDF: {e}")
+        # Fallback: save as text file
+        with open(f"static/report_{rnd}.txt", 'w', encoding='utf-8') as f:
+            f.write(markdown_content)
+        return f"static/report_{rnd}.txt"
