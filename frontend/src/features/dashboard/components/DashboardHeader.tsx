@@ -8,6 +8,8 @@ interface DashboardHeaderProps {
   setDarkMode: (darkMode: boolean) => void
   reportLanguage: string
   setReportLanguage: (language: string) => void
+  reportReason: string
+  setReportReason: (reason: string) => void
   onGenerateServerReport?: () => void
   hasPredictionData?: boolean
   setMobileMenuOpen?: (open: boolean) => void
@@ -21,6 +23,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   setDarkMode,
   reportLanguage,
   setReportLanguage,
+  reportReason,
+  setReportReason,
   onGenerateServerReport,
   hasPredictionData = false,
   setMobileMenuOpen,
@@ -111,6 +115,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                       {language.label}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
+              <label htmlFor="report-reason" className="text-sm font-medium text-foreground whitespace-nowrap">
+                Reason:
+              </label>
+              <Select value={reportReason} onValueChange={setReportReason}>
+                <SelectTrigger className="w-full sm:w-40" id="report-reason">
+                  <SelectValue placeholder="Select reason" />
+                </SelectTrigger>
+                <SelectContent className="z-[9999]">
+                  <SelectItem value="agriculture">Agriculture</SelectItem>
+                  <SelectItem value="industry">Industry</SelectItem>
                 </SelectContent>
               </Select>
             </div>

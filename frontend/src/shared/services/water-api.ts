@@ -1,6 +1,6 @@
 import { PredictionInputData, WaterInputData } from '../types'
 
-const API_BASE_URL = 'https://aegis-backend.mangoforest-0891690a.westus2.azurecontainerapps.io'
+const API_BASE_URL = 'http://localhost:8000'
 
 export interface ServerAnalysisResponse {
   quality_analysis: string
@@ -66,7 +66,7 @@ export const predictWaterData = async (existing: WaterInputData, prediction: Pre
   }
 }
 
-export const generateReport = async (afterPred: ServerAnalysisResponse, language: string): Promise<string> => {
+export const generateReport = async (afterPred: ServerAnalysisResponse, language: string, reason: string): Promise<string> => {
   const response = await fetch(`${API_BASE_URL}/gen_report`, {
     method: 'POST',
     headers: {
@@ -74,7 +74,8 @@ export const generateReport = async (afterPred: ServerAnalysisResponse, language
     },
     body: JSON.stringify({
       after_pred: afterPred,
-      language: language
+      language: language,
+      reason: reason
     })
   })
   

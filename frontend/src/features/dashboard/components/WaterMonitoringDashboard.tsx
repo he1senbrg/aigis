@@ -22,6 +22,7 @@ interface WaterMonitoringDashboardProps {
 const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ setMobileMenuOpen }) => {
   const [darkMode, setDarkMode] = useState(true)
   const [reportLanguage, setReportLanguage] = useState('english')
+  const [reportReason, setReportReason] = useState('agriculture')
   const [mobileInputVisible, setMobileInputVisible] = useState(false)
   const [mapCenter, setMapCenter] = useState<[number, number]>(DEFAULT_MAP_CENTER)
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null)
@@ -169,29 +170,32 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
     })
   }
 
-  const handleGenerateServerReport = async () => {
+    const handleGenerateServerReport = async () => {
     if (!lastPredictionResponse) {
-      showAlertDialog('No Prediction Data', 'No prediction data available. Please run a prediction first.', 'warning')
+      toast('No prediction data available. Please run a prediction first.')
       return
     }
 
+    setReportGenerating(true)
+
     try {
-      setReportGenerating(true)
-      const pdfLink = await generateServerReport(lastPredictionResponse, reportLanguage)
-      
-      // Open PDF in new tab
+      const pdfLink = await generateServerReport(lastPredictionResponse, reportLanguage, reportReason)
       window.open(pdfLink, '_blank')
-      
-      // Auto-close dialog after successful generation
-      setReportGenerating(false)
-      
-    } catch {
-      toast('Failed to generate report.', {
+      toast('Report generated successfully! Opening in new tab...', {
         action: {
           label: "✕",
           onClick: () => {},
         },
       })
+    } catch (error) {
+      console.error('Error generating report:', error)
+      toast('Failed to generate report. Please try again.', {
+        action: {
+          label: "✕",
+          onClick: () => {},
+        },
+      })
+    } finally {
       setReportGenerating(false)
     }
   }
@@ -211,6 +215,8 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
         setDarkMode={setDarkMode}
         reportLanguage={reportLanguage}
         setReportLanguage={setReportLanguage}
+        reportReason={reportReason}
+        setReportReason={setReportReason}
         onGenerateServerReport={handleGenerateServerReport}
         hasPredictionData={lastPredictionResponse !== null}
         setMobileMenuOpen={setMobileMenuOpen}
@@ -228,6 +234,8 @@ const WaterMonitoringDashboard: React.FC<WaterMonitoringDashboardProps> = ({ set
             setDarkMode={setDarkMode}
             reportLanguage={reportLanguage}
             setReportLanguage={setReportLanguage}
+            reportReason={reportReason}
+            setReportReason={setReportReason}
             onGenerateServerReport={handleGenerateServerReport}
             hasPredictionData={lastPredictionResponse !== null}
             hasData={waterData.length > 0}
